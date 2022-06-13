@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Smart To Smart Replacement</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='assets/css/w3css.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='StylePage.css') }}">
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="" name="description">
+<meta content="" name="keywords">
+ <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+ <style>
+    body {
+        background-color: #37517e!important;
+    }
+    
+    .btn {
+        margin-top: 16px;
+        margin-bottom: 16px;
+        border: none;
+        /* display: inline-block; */
+        padding: 8px 16px;
+        text-align: center;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    
+    .action {
+        display: none;
+    }
+</style>
+
+
+
+
+<head>
+
+    <!-- Favicons -->
+    <link href="{{ url_for('static', filename='favicon.ico')}}" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Google Fonts -->
+    <!-- <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet"> -->
+    <!-- Vendor CSS Files -->
+    <link type="text/css" href="{{ url_for('static', filename='assets/fonts/fonts.googleapis_OpenSans.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/css/style.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static',filename='assets/js/jquery-3.5.1.js') }}"></script>
+    
+    
+    <style>
+        .form-control {
+            color: #000
+        }
+        .second {
+
+/* width: 350px; */
+
+background-color: white;
+
+/* border-radius: 4px; */
+
+}
+
+
+
+.subinfo {
+
+font-size: smaller;
+
+}
+
+
+
+.subinfo,
+
+.comment {
+
+color: #56575b
+
+}
+
+
+ 
+    </style>
+</head>
+
+<script>
+    $(document).ready(function() {
+        $("select").change(function() {
+            $(this).find("option:selected").each(function() {
+                var optionValue = $(this).attr("value");
+                if (optionValue) {
+                    $(".box").not("." + optionValue).hide();
+                    $("." + optionValue).show();
+                } else {
+                    $(".box").hide();
+                }
+            });
+        }).change();
+    });
+
+    $('#myModal').on('shown.bs.modal', function() {
+        $('#myInput').trigger('focus')
+    })
+
+
+    $(document).on("click", "#approve-action", function() {
+        var myNCRId = $(this).data('id');
+
+        var reason = $('#Reasons' + myNCRId).val()
+        var subreason = $('#SubReason' + myNCRId).html()
+        console.log(reason)
+        console.log(subreason)
+
+        $('#setReason').attr('value', reason);
+        $('#setSubReason').attr('value', subreason);
+        $('#approvedNum').attr('action', "/ncr/approvencr/" + myNCRId);
+
+    });
+
+    $(document).on("click", "#comm-btn", function() {
+
+var myNCRId = $(this).data('id');
+
+$("#comm").attr("action", "/ncr/insertComm/" + myNCRId)
+
+});
+
+$(document).on("click", "#upload-action2", function() {
+        var myNCRId = $(this).data('id');
+        $("#uploadForm").attr("action", "/upload/" + myNCRId)
+    });
+    $(function() {
+        $('.confirm-checkbox').change(function() {
+            $('#change-form').toggle(this.checked);
+            $('#set-reasons').toggle(!this.checked);
+        }).change(); //ensure visible state matches initially
+    });
+
+
+    $(document).ready(function() {
+        $("#reasons-select").change(function() {
+
+            $(this).find("option:selected").each(function() {
+
+                var optionValue = $(this).attr("value");
+                if (optionValue) {
+                    $(".box").not("." + optionValue).hide();
+                    $("." + optionValue).show();
+
+                } else {
+                    $(".box").hide();
+
+                }
+
+            });
+        }).change();
+    });
+</script>
+<script>
+    $(document).on("click", "#download-btn", function() {
+        var NCRNum = $("#reasons").find("option:selected").text()
+        // var myNCRId = $(this).data('id');
+        $("#NCRAction").attr("action", "/ncr/download/" + NCRNum)
+    });
+</script>
+<script>
+    function runCode() {
+      var filename = document.querySelector('#filename').value;
+      console.log(filename)
+      var myNCRId = $("#ncrnum").text();
+      console.log(myNCRId)
+    $("#downloadForm").attr("action", "/DownloadReport/" + myNCRId + "/" + filename)
+    }
+    </script>
+    <script>
+    $("input:radio").change(function() {
+        $(".type").hide();
+        $(this).next("input").show();
+    });
+</script>
+</head>
+
+<body>
+
+
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top ">
+        <div class="container d-flex align-items-center">
+            <h1 class="logo me-auto"><a href="/">ALFANAR</a></h1>
+            <!-- Uncomment below if you prefer to use an image logo -->
+            <!-- <a href="index.html" class="logo me-auto"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto active" href="/">Home</a></li>
+                    <!-- <li><a class="nav-link scrollto" href="">Login</a></li> -->
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav>
+            <!-- .navbar -->
+        </div>
+    </header>
+    <!-- End Header -->
+
+    <!-- ======= Hero Section ======= -->
+    <section id="hero" class="d-flex align-items-center">
+        <div class="container" style="max-width: 100%;">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
+
+                    <h3 style="color: rgb(255, 255, 255);">{{ UserName }}</h3>
+                    <div class="d-flex justify-content-center justify-content-lg-start">
+                        <div class="container" style="max-width: 100%;" data-aos="fade-up">
+                            <div id="Form2">
+                                <form id="NCRAction" action="" method="POST">
+ 
+                                    <br>
+ 
+                                    <div Style="text-align: left;">
+                                        <label style="color: white;">Select FIR </label></div>
+                                         <div Style="text-align: left;color: white;">
+                                            <select id="reasons" name="reasons" class="w3-input w3-border">
+            <option>Select FIR</option>
+            {%for k in NCRs.keys()%}
+             
+            <option name="{{k}}" id="{{k}}" value="{{k}}" >{{k}}</option>
+           
+            {% endfor %}
+        </select>
+    
+                                        </div>
+                                        <br> {%for i,r in NCRs.items()%}
+    
+                                        <div class="{{i}} box" Style="text-align: left;color: white;">
+    
+                                            {%for t,s in r.items()%}
+                                            
+                                            {% if  (r.MainNCRNumber == none ) and (t == 'MainNCRNumber' or t == 'New Device Rating' or t == 'Old Device Number' or t == 'Old Device Rating' or t == 'New Device Number' ) %} 
+                                            {%else%}
+                                            <lable>{{t}}</lable>
+                                            <input class="w3-input w3-border" type="text" placeholder="" required name="{{NCRs.NCRNumber}}" id="{{t}}{{i}}" style="font-weight: bold; text-align: center;" value="{{s}}" readonly><br>
+                                              {% endif %}
+                                            {% endfor %} 
+                                        </div>
+                                        {% endfor %}
+    
+                                    <h5 Style="text-align: left;color: white;">Comments</h5>
+                                    {%for i in Comment%}
+                                    <div Style="text-align: left;color: white;" class="form-control">
+
+                                        <div class="d-flex justify-content-left py-2 ">
+
+                                            <div class="second py-2 px-2">
+
+                                                <p class="subinfo "><b>Comment By:</b> {{i.CommentBy}}</p>
+
+                                                <p class="comment"><b>Comment:</b> {{i.Comment}}</p>
+
+                                                <!-- <br> -->
+
+                                                <!-- <br> -->
+
+                                                <p class="subinfo"><b>NCRNumber:</b> {{i.NCRNumber}}</p>
+                                                <p class="subinfo"><b>Comment Date:</b> {{i.date}}</p>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <br>{% endfor %}
+
+                                    <br>
+                                    <div id="action-btns" style="text-align: center;" >
+                                        <div id="download-btn"  class="{% if NCRs[NCRNum]['Status'] == 'Created' or NCRs[NCRNum]['Status'] == 'InProgress' or NCRs[NCRNum]['Status'] == 'Rectified'  %} action {% endif %}">
+                                            <button  type="submit" class="btn btn-primary" style="width: 50%" hidden>
+                                            Download
+                                        </button>
+                                        </div>
+                                        <a id="download-btn3" class="action-btn " data-toggle="modal" data-id="{{NCRNum}}" data-target="#download-action"><button class="btn btn-primary" style="width: 50%">Download Attachment</button> </a>
+                                        <div id="approve-btn" class="{% if NCRs[NCRNum]['Status'] != 'Rectified'  %}action{% endif %}">
+                                            <a id="approve-action" formaction="/ncr/approvencr/{{NCRNum}}" style="width: 50%" data-toggle="modal" data-id="{{NCRNum}}" data-target="#exampleModal">
+
+                                                <button class="btn btn-primary" style="width: 50%">Confirm & Comment</button>
+                                            </a>
+                                        </div>
+
+                                        <a id="comm-btn" class=" action-btn" data-toggle="modal" data-id="{{NCRNum}}" data-target="#exampleModal1">
+                                            <button class="btn btn-primary" style="width: 50%">Comment</button></a>
+                                            
+                                                <a id="upload-action2" class="action-btn " data-toggle="modal" data-id="{{NCRNum}}" data-target="#upload-action"><button class="btn btn-primary" style="width: 50%">Upload</button> </a>
+                                    
+                                    
+                                        </div>
+
+
+
+
+
+
+                                </form>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">
+                    <img src="{{ url_for('static', filename='Image/hero-img.png') }}" class="img-fluid animated" alt="">
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- End Hero -->
+
+
+
+
+
+
+    <!-- END Modals -->
+
+    <main id="main">
+
+
+
+        <!-- ======= Footer ======= -->
+        <footer id="footer">
+
+
+            <div class="container footer-bottom clearfix">
+                <div class="copyright">
+                </div>
+                <div class="credits">
+                    <!-- All the links in the footer should remain intact. -->
+                    <!-- You can delete the links only if you purchased the pro version. -->
+                    <!-- Licensing information: https://bootstrapmade.com/license/ -->
+                    <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/arsha-free-bootstrap-html-template-corporate/ -->
+                </div>
+
+
+
+            </div>
+        </footer>
+        <!-- End Footer -->
+
+        <div id="preloader"></div>
+        <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+        <!-- Vendor JS Files -->
+        <script src="{{ url_for('static',filename='assets/vendor/aos/aos.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/php-email-form/validate.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/waypoints/noframework.waypoints.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/js/main.js') }}"></script>
+        
+        <!-- START Models -->
+        <form action="" id="approvedNum" method="post">
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Confirm & Comment</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <div id="confirm-change">
+                                <span for="confirm-checkbox" style="color: black;">Change Replacement Reasons?       <span>
+                <input  type="checkbox" name="confirm-checkbox" class="confirm-checkbox" id="confirm-checkbox" value="True">
+                <br><br>
+                <div id="set-reasons">
+                <label for="setReason" style="color: black;"> Replacment Reason</label>
+                <input class="form-control" type="text" name="setSubReason" id="setReason" value="" readonly>
+               
+                </div>
+            </div>
+
+            <br>
+            
+            <div id="change-form" >
+                <div style="text-align: left;">
+                    <p>Replacment Reason:</p>
+                </div>
+          
+                <div  style="text-align: left;">
+                    <select id='reasons-select' class="form-select" name="reasons-select">
+                        <option>Select Reason</option>
+                        {%for k in Reason.keys()%}
+                        <option id="{{k}}" value="{{k}}"  >{{k}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <br>
+                
+                <div  style="text-align: left;">
+                    <select class="form-select" id="subreasons-select"  name="subreasons-select" >
+                        <option>Select Sub-Reason</option>
+                        {%for k in Reason.keys()%}
+                        {%for sk in Reason[k]%}
+                        <option class="{{k}} box" value="{{sk[1]}}">{{sk[0]}}</option>
+                        {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <br>
+               
+                                    
+                <div id="comment-section" style="text-align: left;">
+                <p>Investigation Comment:</p>
+               </div>
+        </div>
+        <textarea class="form-control" name="investegation-comment" id="investegation-comment" cols="30" rows="10" required></textarea>
+    </div>
+      
+
+        <div class="modal-footer">
+          <button type="reset" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+        <form id="comm"  action="" method="POST">
+            <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Add Your Comment</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+
+                            <div class="modal-body">
+                                <textarea class="form-control" id="exampleFormControlTextarea3" name="Comment" rows="7"></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </form>
+
+
+
+
+
+      
+
+                <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
+            <div class="modal fade " id="upload-action" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Upload Attachment</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+
+
+                        <div class="modal-body ">
+
+                            <div>
+                                <input class="form-check-input" type="radio" value="SECApproval" id="option1" name="flexRadioDefault" required>
+                                <label class="form-check-label" for="flexRadioDefault1">
+                                 SEC Approval
+                                </label>
+
+
+                                <input class="form-check-input" type="radio" value="AnyFile" id="option2" name="flexRadioDefault" required>
+                                <label class="form-check-label" for="flexRadioDefault2">
+                                  File
+                                </label>
+
+                            </div>
+
+                            <input type="file" name="file" class="form-control">
+
+
+
+
+
+
+
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+
+
+
+        <form id="downloadForm" action="" method="GET" enctype="multipart/form-data">
+            <div class="modal fade " id="download-action" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel3" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel3">Download Attachment</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            <span  hidden id="ncrnum">{{NCRNum}}</span>
+                                </button>
+                        </div>
+
+
+                        <div class="modal-body">
+                            <select class="form-select" id="filename" name="Files" >
+                               
+                                {% for files in file %}
+                               
+                                <option  value="{{files}}">{{files}}</option>
+                              
+                                {% endfor %}
+                            </select>
+
+
+
+
+
+
+
+
+
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" onclick="runCode()">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+</html>
