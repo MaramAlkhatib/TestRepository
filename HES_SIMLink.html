@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<title>ALFANAR</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{{ url_for('static',filename='assets/css/w3css.css') }}">
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="" name="description">
+<meta content="" name="keywords">
+
+<style>
+    .btn {
+        background-color: #006cb8!important;
+        /* margin-top: 16px; */
+        margin-bottom: 16px;
+        border: none;
+        display: inline-block;
+        padding: 8px 16px;
+        vertical-align: middle;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        background-color: inherit;
+        text-align: center;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+</style>
+
+<head>
+
+    <!-- Favicons -->
+    <link href="{{ url_for('static', filename='favicon.ico')}}" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link type="text/css" href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+
+    <!-- Template Main CSS File -->
+    <link type="text/css" href="{{ url_for('static',filename='assets/css/StyleofHomepage.css') }}" rel="stylesheet">
+    <link type="text/css" href="{{ url_for('static',filename='assets/css/style.css') }}" rel="stylesheet">
+
+<!-------------------------------------------- EXPORTED ------------------------------------------------------->
+<!-- FOR TABS  -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>-->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>  -->
+
+<!--  -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>  -->
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous"> -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+ 
+<!-------------------------------------------- EXPORTED ------------------------------------------------------->
+<script>
+//     $(function () {
+//   $('[data-toggle="tooltip"]').tooltip()
+// })
+
+// $(function () {
+//   $('[data-toggle="popover"]').popover()
+// })
+</script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.tooltip-msg').tooltip({
+        selector: "a[rel=tooltip]",
+        placement: "top"
+})
+ });
+</script>
+<style>
+    .tooltip{
+        position:absolute;
+        z-index:1020;
+        display:block;
+        visibility:visible;
+        padding:5px;
+        font-size:13px;
+        opacity:0;
+        filter:alpha(opacity=0)
+    }
+    .tooltip.in{
+        opacity:.9;
+        filter:alpha(opacity=90)
+    }
+    
+    
+    /* .tooltip-inner{
+    
+        padding:3px 8px;
+        color:#314A5B;
+        text-align:center;
+        font-weight:900;
+        background: -webkit-gradient(linear, left top, left 25, from(#FFFFFF), color-stop(4%, #A2BBCC), to(#FFFFFF)); 
+        background: -moz-linear-gradient(top, #FFFFFF, #A2BBCC 1px, #FFFFFF 25px); 
+        -webkit-border-radius:5px;
+        -moz-border-radius:5px;
+        border-radius:15px;
+        border: 1px solid #314A5B;
+    } */
+    
+    
+    .tooltip-arrow{
+        position:absolute;
+        width:0;
+        height:0
+    }
+    </style>
+</head>
+
+<body>
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top ">
+        <div class="container d-flex align-items-center">
+            <h1 class="logo me-auto"><a href="/">ALFANAR</a></h1>
+            <!-- Uncomment below if you prefer to use an image logo -->
+            <!-- <a href="index.html" class="logo me-auto"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto active" href="/">Home</a></li>
+                    <li><a class="nav-link scrollto active" href="/Login">Login</a></li>
+
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav>
+            <!-- .navbar -->
+        </div>
+    </header>
+    <!-- End Header -->
+    <!-- ======= Hero Section ======= -->
+    <section id="hero" class="d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
+                    <h1>SIM Link to Device</h1>
+
+                    <!-- <p id="help-text" style="color: white;">Connect SIM to a Device that is Installed </p> -->
+ 
+                    <ul class="nav nav-tabs">
+                            <li ><a data-toggle="tab" href="#one_device_link" style="color: #999999;">Device SIM Link</a></li>
+                            <li class="active"><a data-toggle="tab" href="#multi_device_link" style="color: #999999;">Multiple Device SIM Link</a></li>
+                        </ul>
+                        
+                          <div class="tab-content">
+
+                            <div id="one_device_link" class="tab-pane fade ">
+                                
+                                    <form action="----------ROUTE---------" method="POST">
+                                        </br>
+                                        <label for="deviceid" style="color: white;">Device ID</label>
+                                        <input class="w3-input w3-border form-control" type="text" required name="deviceid" id="deviceid" maxlength="20">
+                                        <br>
+                                        <label for="imsinumber" style="color: white;">IMSI</label>
+                                        <input class="w3-input w3-border form-control" type="text" required name="imsinumber" id="imsinumber" maxlength="20">
+                                        <br>
+                                        <button type="Submit" class="btn btn-primary">
+                                                Submit
+                                        </button> 
+                                            <a href='/'>
+                                                <button type="button" class="btn btn-primary">Home</button>
+                                            </a>
+                                    </form>
+                                <!-- </div>    -->
+                            </div>
+                            <div id="multi_device_link" class="tab-pane fade in active">
+                                <!-- <div class="d-flex justify-content-center justify-content-lg-start"> -->
+                                    <form action="----------ROUTE---------" method="POST">
+                                    </br>
+                                        <p style="color: rgb(255, 250, 250);">All column names must be identical to the columns in the sample file. Kindly refer to the sample file to ensure that the uploaded file is in the correct format.</p>
+                                        </br>
+                                        <!-- <label for="deviceid" style="color: white;">Upload File</label> -->
+                                        <!-- <input class="w3-input w3-border form-control" type="file" required name="devicefile" id="devicefile" maxlength="20"> -->     
+                                        <label for="deviceid" style="color: white;">Upload File</label>
+                                            <div class ="row ">
+                                              <div class="col-sm-9 col-md-6 col-lg-8 col-xl-10">
+                                                <div class="form-outline">
+                                                  <input type="file" id="form1" class="form-control" />
+                                                </div>
+                                              </div>
+                                              <div class="col-sm-3 col-md-6 col-lg-4 col-xl-2">                         
+                                                    <!-- <div class="tooltip-msg">
+                                                        <a title="<p>Billilah Billilah</p>  <img src='https://jai-un-pote-dans-la.com/wp-content/uploads/2021/12/giphy-6.gif' width='175'> <a href='https://www.jquery-az.com/'>&#128155;&#128155;&#127773;&#128155;&#128155;</a>" data-html="true" rel="tooltip" href="#">                                                        
+                                                            <button type="button" class="btn btn-primary"><i class="fa fa-file"></i>  Dowload Sample</button>
+                                                        </a>
+                                                    </div> -->
+                                                    <div class="tooltip-msg">
+                                                        <a href="{{ url_for('static', filename='assets/SIMLinkSampleFile.xlsx') }}"  title=" <img src='{{ url_for('static', filename='assets/hes_sim_gif.gif') }}'' width='175'> <p>Column names must be identical to sample file (referenced above)</p> " data-html="true" rel="tooltip" href="#">                                                        
+                                                            <button type="button" class="btn btn-primary"><i class="fa fa-file"> </i> Dowload Sample</button>
+                                                        </a>
+                                                    </div>                              
+                                            </div>
+                                            </div>
+                                          <br>
+                                       <button type="Submit" class="btn btn-primary">
+                                                Submit
+                                        </button> 
+                                            <a href='/'>
+                                                <button type="button" class="btn btn-primary">Home</button>
+                                            </a>
+                                    </form>
+                                <!-- </div>     -->
+                            </div>
+                            
+                          </div>
+                </div>
+                <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">
+                    <img src="{{ url_for('static', filename='Image/hero-img.png') }}" class="img-fluid animated" alt="">
+                </div>
+            </div>
+        </div>
+      
+   
+   
+   
+   
+   
+   
+        <!-- <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Tooltip on bottom">Tooltip on bottom</button> -->
+
+
+
+        <!-- <div class="row mt-100">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="text-center">Tooltip with image and content</h5>
+                    </div>
+                    <div class="card-block">
+                        <p class="text-center">
+                            <span class="mytooltip tooltip-effect-1">
+                                <span class="tooltip-item">Hover me</span>
+                                <span class="tooltip-content clearfix">
+                                    <img src="https://i.imgur.com/y74Wb0q.png">
+                                    <span class="tooltip-text">Get the best way to find to eat icecream at BBBOOTSTRAP.COM</span>
+                                </span>
+                            </span>
+                            to get tooltip with image and content</p>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+   
+<!--  
+        <div class="tooltip-demo">
+            <a title="<p>You may use headings</p>  <img src='https://jai-un-pote-dans-la.com/wp-content/uploads/2021/12/giphy-6.gif' width='175'> <a href='https://www.jquery-az.com/'>Download Sample File</a>" data-html="true" rel="tooltip" href="#">Bring mouse over this text!</a>.
+        </div>
+ -->
+
+
+
+
+
+
+
+
+
+   
+   
+   
+   
+   
+   
+    </section>
+    <!-- End Hero -->
+
+    <main id="main">
+        <!-- ======= Footer ======= -->
+        <footer id="footer">
+ 
+        </footer>
+        <!-- End Footer -->
+
+        <div id="preloader"></div>
+        <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+        <!-- Vendor JS Files -->
+        <script src="{{ url_for('static',filename='assets/vendor/aos/aos.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/php-email-form/validate.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/waypoints/noframework.waypoints.js') }}"></script>
+
+        <!-- Template Main JS File -->
+        <script src="{{ url_for('static',filename='assets/js/main.js') }}"></script>
+    </main>
+</body>
+ 
+
+</html>
