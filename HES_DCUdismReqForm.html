@@ -27,10 +27,10 @@
             cursor: pointer;
             white-space: nowrap;
         }
-
+/* 
         label {
             color: white;
-        }
+        } */
     </style>
 
     <head>
@@ -46,12 +46,13 @@
         <link type="text/css" href="{{ url_for('static',filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet" />
         <link type="text/css" href="{{ url_for('static',filename='assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet" />
         <link type="text/css" href="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet" />
+        <link type="text/css" href="{{ url_for('static',filename='assets/css/StyleofHomepage.css') }}" rel="stylesheet" />
+        <link type="text/css" href="{{ url_for('static',filename='assets/css/style.css') }}" rel="stylesheet" />
+       
         <!-- -------------------------------------------- EXPORTED ---------------------------------------- -->
         <!-- Template Main CSS File -->
         
-        <link type="text/css" href="{{ url_for('static',filename='assets/css/StyleofHomepage.css') }}" rel="stylesheet" />
-        <link type="text/css" href="{{ url_for('static',filename='assets/css/style.css') }}" rel="stylesheet" />
-        <link type="text/css" href="{{ url_for('static',filename='assets/css/4.0.0_npm_bootstrap.min.css') }}" rel="stylesheet" />
+       <link type="text/css" href="{{ url_for('static',filename='assets/css/4.0.0_npm_bootstrap.min.css') }}" rel="stylesheet" />
        
     </head>
 
@@ -79,9 +80,10 @@
                     <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
                         <h1>DCU Dismantle Request</h1>
                         <div id="dcuRequest">
-                            <form action="--------- LINK ----------" method="GET">
-                                <br />
-                                <br />
+                            <div class="card">
+                                <div class="card-body">
+                                  <form action="--------- LINK ----------" method="GET">
+                              
                                 <div class="form-row">
                                     <div class="form-group col-md-4">
                                         <label for="inputState">DCU</label>
@@ -124,10 +126,7 @@
                                 </div>
 
                                 <br />
-
-                            
-                                <br />
-
+ 
                                 <a href="/">
                                     <button type="button" class="btn btn-primary">Home</button>
                                 </a> 
@@ -139,6 +138,9 @@
                                     HES Dismantle
                                 </button>
                             </form>
+                                </div>
+                              </div>
+                            
                         </div>
                     </div>
                     <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">

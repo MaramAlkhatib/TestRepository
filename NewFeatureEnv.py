@@ -33,6 +33,10 @@ app.config['UPLOAD_PATH'] = "templates/NCRs/"
 
 
 # --------------- HES Reuest Table ----------------
+@app.route('/hes/requesttabledemo', methods=["GET"])
+def hesrequestdemo():
+    return render_template('TableDemo.html')
+
 
 @app.route('/hes/requesttable', methods=["GET"])
 def hesrequest():
@@ -48,19 +52,15 @@ def hesrequest():
             Order by 
             TransId Desc""",conn)
     df = pd.merge(data,subdata,left_on="TransId",right_on="ParentTransId")
-    df.to_csv("Docs/df_children.csv")
+    # df.to_csv("assets/docs/df_children.csv")
+    df.to_csv("templates/assets/docs/df.csv")
     # data.set_index("TransId", drop=True, inplace=True)
     data=data[["TransId","Verb", "CreationTimeStamp", "MSGStatus"]]
     data.to_json(orient='columns')
     subdata=subdata[["TransId","Verb","CreationTimeStamp","ParentTransId"]]
     subdata.to_json(orient='columns')
-    return render_template('HESRequestTable.html', datas = data, subdata = subdata)
+    return render_template('HESRequestTable1.html', datas = data, subdata = subdata)
 
-
-
-@app.route('/hes/requesttabledemo', methods=["GET"])
-def hesrequestdemo():
-    return render_template('TableDemo.html')
 
 # inboundMSG, HESOutboundMSG,HESReplyError, HESReponseMSG
 
@@ -81,11 +81,21 @@ def dcudismantle():
 @app.route('/hes/dcudismantle/found', methods=["GET"])
 def dcuDismSearchResult():
     df = pd.read_sql("""SELECT TOP(20) * FROM [HES].[dbo].[SAI_NCRs] WHERE MainNCRNumber is null""",conn)
-    return render_template('HES_DCUdismTable.html', df =df)
+    return render_template('HES_DCUdismTable1.html', df =df)
 
+# @app.route('/hes/dcudismantle/found1', methods=["GET"])
+# def dcuDismSearchResult1():
+#     df = pd.read_sql("""SELECT TOP(20) * FROM [HES].[dbo].[SAI_NCRs] WHERE MainNCRNumber is null""",conn)
+#     return render_template('HES_DCUdismTable1.html', df =df)
+ 
+# @app.route('/hes/dcudismantle/found2', methods=["GET"])
+# def dcuDismSearchResult2():
+#     df = pd.read_sql("""SELECT TOP(20) * FROM [HES].[dbo].[SAI_NCRs] WHERE MainNCRNumber is null""",conn)
+#     return render_template('HES_DCUdismTable2.html', df =df)
+ 
 
-@app.route('/hes/dcudismantle/found/requestform', methods=["GET"])
-def dcuDismRequestForm():
+@app.route('/hes/dcudismantle/found/requestform/<num>', methods=["GET"])
+def dcuDismRequestForm(num):
     return render_template('HES_DCUdismReqForm.html')
 
 
@@ -94,7 +104,7 @@ def dcuDismRequestForm():
 
 @app.route('/hes/devices', methods=["GET"])
 def devicesManagment():
-    return render_template('HES_devicesServices.html')
+    return render_template('HES_devicesServices3.html')
 
 
 
