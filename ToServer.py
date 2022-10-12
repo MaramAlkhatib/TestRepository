@@ -1,5 +1,6 @@
 #from crypt import methods
 #from crypt import methods
+from asyncio.windows_events import NULL
 import csv
 from itertools import groupby
 import re
@@ -7,7 +8,7 @@ from opcode import opname
 import GetOrderPhotos as GOP
 import os, random, math, smtplib, ssl, json,  time, glob
 from posixpath import split
-from flask import Flask, request,  render_template, redirect, make_response, send_from_directory,abort
+from flask import Flask, request,  render_template, redirect, make_response, send_from_directory,abort, send_file
 from pandas.core.frame import DataFrame
 from pandas.io import excel
 import requests
@@ -35,7 +36,7 @@ import ECBRevision as ECR
 # from MeterManuData import UploadMeterData as UMD
 import globalFunctions as GFs
 import EMailer as mailIt
-import NCR_Management as NCRM
+import NCR_Management1 as NCRM
 import DocCreator as GenDoc
 # import logging.handlers
 import logging.handlers as handlers
@@ -110,7 +111,7 @@ SECMD =pd.DataFrame()
 
 AlFanarMeters = pd.read_sql("select DeviceID as Serials from alf_meters ",conn)
 
-AppDebugMode = True
+AppDebugMode = False
 
 statusList={
         "Created":"success",
@@ -131,13 +132,13 @@ statusList={
 log_formatter = logging.Formatter('%(asctime)s %(levelname)s - %(funcName)s - %(message)s')
 logFile = 'log/logfile_T.log'
 logger = logging.getLogger('my_app')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logHandler = handlers.RotatingFileHandler(logFile, maxBytes=10*1024*1024, backupCount=10)
-logHandler.setLevel(logging.INFO)
+logHandler.setLevel(logging.DEBUG)
 logHandler.setFormatter(log_formatter)
 logger.addHandler(logHandler)
 console  = logging.StreamHandler()
-console.setLevel(logging.INFO)
+console.setLevel(logging.DEBUG)
 logging.getLogger().addHandler(console)
 
 def IsinByPassList(Pnum):
@@ -177,8 +178,8 @@ def ReloadSECData():
                             wom.FH_ServiceClass as 'Service Class',
                             wom.FH_SubscriptionNumber as 'Subscription No',
                             wom.FH_ContractAccount as 'Account No',
-                            JSON_VALUE(OrderData, '$.Order.DCU_CapturedLongitude') as Longitude,
-                            JSON_VALUE(OrderData, '$.Order.DCU_CapturedLatitude') as Latitude,
+                            STR(wo.Latitude, 25, 5) as Latitude,
+                            STR(JSON_VALUE(OrderData, '$.Order.DCU_CapturedLatitude') , 25, 5) as Longitude,
                             JSON_VALUE(OrderData, '$.Order.MEX_MRUNumber') as MRU,
                             JSON_VALUE(OrderData, '$.Order.DCU_NewSerialNumber') as 'DCUSerialNumber',
                             JSON_VALUE(OrderData, '$.Order.MEX_ExistingMeterNumber') as 'MeterList',
@@ -431,7 +432,7 @@ def ForcePassChange(UName, NewPass):
 @app.route('/', methods=["GET"])    
 def home():
     SID = request.cookies.get('SID')
-    listSample = '''<li><a href="#ROUTE#"><div class="icon"><i class='bx #FileImage#'></i></div>#File#</a></li>'''
+    listSample = '''<li><a href="#ROUTE#"><div class="icon text-left"><i class='bx #FileImage#'></i></div><span>#File#</span></a></li>'''
     DWNLDList = pd.read_sql("select * from SAI_FilesDownloads where Enabled='y'",conn)
     downloads = ""
     for index, row in DWNLDList.iterrows():
@@ -1141,9 +1142,7 @@ def CreateVisitOrder():
                     complainEn = request.form.get("reasonEn")
                     complainAr = request.form.get("reasonAr")
                     requestedBy = request.form.get("requester")
-                    print('Site visit created for order: ')
-                    print(PremiseNumber)
-                    print(complainEn)   
+                    print('Site visit created for order: '+str(PremiseNumber))
                     logger.info('Site visit created for order: '+PremiseNumber+' '+complainEn+' '+UName)
 
                     payload = {
@@ -1537,6 +1536,11 @@ omBGs = {
         }
 OrdersForOpen= {}
 print(OrdersForOpen)
+# Copy Variables
+ 
+
+
+
 def OpenClevestOrders():
     clConn = pyodbc.connect(ClConnectionStr)
     cr = clConn.cursor()
@@ -1545,17 +1549,25 @@ def OpenClevestOrders():
     Auths = {"UserName" : "sap_api", "Password":"123456"}
     headers = {'Content-Type': 'application/json'}
     auth = HTTPBasicAuth(Auths["UserName"], Auths["Password"])
+    f=open('ddddd.txt','w')
     while True:
         
         while len(OrdersForOpen.keys()) > 0:
+            print('Welcome====================>')
+            f.write('Welcome====================>\n')
+            f.flush()
             inProcess = {}
             myK = ""
             for k in OrdersForOpen.keys():
                 inProcess = OrdersForOpen[k]
                 myK = k
-                pass
+            f.write(' =======> (2) \n')
+            f.flush()
+            
             SQLStr = "select HostOrderNumber from WorkOrderMapping where HostOrderNumber like '"+ inProcess["PNum"] +"%' and OrderStatusId not in (100, 80) and ordertypeid in (1,5)"
             runningOrders = pd.read_sql(SQLStr, clConn)
+            f.write(' =======> (3) \n')
+            f.flush()
             if len(runningOrders) > 0 :
                 try:
                     mailIt.SendEmail([inProcess["Mail"]],[],"Replacement Order Creation -"+ inProcess["PNum"] +"-","Other replacement order in progress,\nYour request has been rejected.",[])
@@ -1586,6 +1598,7 @@ def OpenClevestOrders():
                 NewHON =(inProcess["PNum"] + '-R{0:07d}').format(pd.read_sql(SQL_NewSer, clConn).fillna(1).iloc[0].NewSer)
                 logger.warning("Opening Clevest Order HON: "+NewHON)
                 print("Opening Clevest Order HON: "+NewHON)
+
                 #cols=['Premise','MRU','Office','fg. Ser. No','Meter Type','Equip. No','Cycle','Last Bill Key','Route Read Seq','MR Note','Date of MR Note','Critical Need',
                 # 'Service Class','Premise Address','City','District','Subscription No','Account No','BPName','BP Type','Latitude','Longitude','Mult. Factor','No. of Dials',
                 # 'Breaker Cap.','Voltage','Phase','Tariff Type','Prev Read Date T','Prev. Read T','Prev Read Date T1','Prev. Read T1','Prev. Read Date T2','Prev. Read T2',
@@ -1593,6 +1606,8 @@ def OpenClevestOrders():
                 # 'Prev. Read Date T7','Prev. Read  T7','Avg. Consp. per day (kWh)','Accl. Premise No','Main Premise No','Conn. Type', 'F1','F2']
                 BG = omBGs[inProcess["MeterData"].iloc[0]["Office"][:2]]
                 #mD = inProcess["MeterData"]
+                f.write(' =======> (4) \n')
+                f.flush()
                 clMsg = {
                         'BG':BG,
                         'HON':NewHON,
@@ -1643,23 +1658,54 @@ def OpenClevestOrders():
                         # ,'SignalStrength' : inProcess["SignalStrength"],
                         # 'MeterList' : inProcess["MeterList"]
                         }
-
-                # resp = requests.post(ClevestTargetLink, data=json.dumps(clMsg),headers=headers,auth=auth)
+                # f.write(' =======> (32) \n\n\n\n\n')
+                # f.flush()
+                # f.write('\n\n\n\n\n')
+                # f.flush()
+                # f.write(str(inProcess["MeterData"]))
+                # f.flush()
+                # f.write('\n\n\n\n\n')
+                # f.flush()
+                # f.write(str(clMsg))
+                # f.flush()
+                # f.write('\n\n\n\n\n')
+                # f.flush()
+                print(clMsg)
+                # print(inProcess["MeterData"])
+                # print(inProcess["MeterData"].iloc[0]["Latitude"],)
+                # print(inProcess["MeterData"].iloc[0]["Longitude"],)
+                # addToClipBoard(str(inProcess["MeterData"]))
 
                 # print(Fore.BLUE + "Order Information: " +Style.RESET_ALL)
                 # print(OrdersForOpen)
                 # logger.debug(OrdersForOpen)
-
+                # f.write(' =======> (322) \n')
+                # f.flush()
+                f.write(' =======> (4) \n')
+                f.flush()
+                # resp = requests.post(ClevestTargetLink, data=json.dumps(clMsg),headers=headers,auth=auth)
                 # if resp.status_code == 200:
                 resp = 200
                 if resp == 200:
+                    f.write(' =======> (5) \n')
+                    f.flush()
                     print(Fore.GREEN + "Clevest Order"+NewHON+" Created" +Style.RESET_ALL)
                     logger.info("Clevest Order"+NewHON+" Created")
 
                     try:
-                        # NCRM.CreateMainNCR(clMsg)
+                        logger.info("~~~~~~~~TEST~~~~~~~~~~~")
+                        f.write(' =======> (6) \n')
+                        f.flush()
+                        NCRM.CreateMainNCR(clMsg)
+                        f.write(' =======> (7) \n')
+                        f.flush()
                         print(Fore.GREEN + "NCR Order"+NewHON+" Created" +Style.RESET_ALL)
                     except:
+                        f.write(' =======> (8) \n')
+                        f.flush()
+                        print(Fore.RED + "NCR Order"+NewHON+" Not Created " +Style.RESET_ALL)
+                        logger.info("~~~~~~~~TEST~~~~~~~~~~~")
+
                         print(Fore.RED + "Issue in NCR "+NewHON+" creation" +Style.RESET_ALL)
 
 
@@ -1675,9 +1721,6 @@ def OpenClevestOrders():
                     except:
                         print(Fore.RED + "Mail NOK" +Style.RESET_ALL)
                         logger.error("Mail NOK" + str(inProcess["Mail"]))
-
-
-                   
 
                 else:
                     try:
@@ -1779,6 +1822,9 @@ def BMCreate():
                 Reason = request.form.get("reasons")
                 SubReason= request.form.get("subreason")
                 MyMeter = SECMD[SECMD["Premise"]== request.form.get("PNum")]
+                print("SEC DatA "+str(MyMeter))
+                print(MyMeter)
+                # addToClipBoard(str(MyMeter))
                 MyRec = {
                     "PNum":PNum,
                     "Meter" : Meter,
@@ -1867,14 +1913,14 @@ def MultiCreateBMUploader():
                 Reason = request.form.get("reasons")
                 SubReason= request.form.get("subreason")
                 UName = request.form.get("onbehalf")
-                file = request.files["file"]                    
+                file = request.files["file"]      
+                #logger.debug(1)
+
                 if file:
                     df = pd.read_csv(file,dtype=str)
                     df.columns = ['Premise']
-                    print(df)
-                    logger.debug(df)
-
                     SearchKey ='PRE'
+                    logger.debug(2)
 
        
 
@@ -1882,35 +1928,41 @@ def MultiCreateBMUploader():
 
                         SearchData = str(r.Premise)
                         print(SearchData)
-                        logger.debug(SearchData)
+                        # logger.debug(SearchData)
 
                         SData = SECMD[SECMD["Premise"]==r.Premise]
-                        print("SEC Date"+SECMD["Premise"])
-                        print("CSV Premise"+r.Premise)
-                        logger.info("CSV Premise"+r.Premise)
+                        print("SEC DatA "+SECMD["Premise"])
+                        print("SEC DatA "+SECMD["Premise"])
+                        print("CSV Premise "+r.Premise)
+                        logger.info("CSV Premise "+r.Premise)
 
-                        print(SData)
-                        logger.debug(SData)
+                        # print(SData)
+                        # logger.debug(SData)
+                        # logger.debug()
 
                         MyRec = {
                                 "PNum":SearchData,
-                                "Meter" : Meter,
                                 "MeterData" : SData,
+                                "Meter" : Meter,
                                 "ECB"  : ECB,
                                 "CM" : CM,
                                 "DCU" :DCU,
                                 "Reason" : Reason,
                                 "SubReason" : SubReason,
-                                "UName" : UName,
-                                "UId" : UName,
+                                "UName" : '54662',
+                                "UId" : '35',
+                                # "UName" : ActiveSessions[SID]["UserName"],
+                                # "UId" : ActiveSessions[SID]["UserId"],
                                 "Mail" : ActiveSessions[SID]["Mail"],
                                 "FName" : ActiveSessions[SID]["UserFName"]
-                                }
+                                } 
+                        
                         TransActionID = str(uuid.uuid1())
                         OrdersForOpen[TransActionID] = MyRec
 
                         print(MyRec)
-                        logger.debug(MyRec)
+                         
+                        # OpenClevestOrders()
 
                     return render_template("GeneralMessage.html",msgcolor = "lime", MSGBody="Your request has been recieved , you'll recieve e-mail with the result.", BackTo="/" )
             else:
@@ -1933,6 +1985,160 @@ def MultiCreateBMUploader():
 def AA():
     # return render_template("home.html")
     return render_template("ServicePage.html")
+
+
+
+@app.route('/som/request', methods=['GET'])
+def BB_1():
+    df = pd.read_csv("templates/assets/docs/Alarms.csv")
+    return render_template("SOM_Upload1.html", alarms = df)
+
+def FuncAddCounter(Offset, df):
+    print(Offset,)
+    ii = Offset
+    #Xi = list(range(ii+1, len(df)+1 ))
+    Xi = []
+    dd = 0
+    for tg in range(len(df)):
+        dd+=1
+        Xi.append(ii + dd)
+        
+    df["TicketNumber"] = Xi
+    return df , (ii+dd)
+
+
+@app.route('/som/createrequest', methods=['POST'])
+def BB_2():
+    # TODO:-
+        # Add confirmation POPUP in FE 
+
+    requestType = request.form.get('reqType')
+    if requestType == 'S':
+        MultiMeterNo = pd.DataFrame()
+        alarmSelected = request.form.get('singleAlarm')
+        if alarmSelected == "4":
+            splitInput = request.form.get('MeterNo').split(',')
+            MultiMeterNo["Meters"] = splitInput[0]
+            MultiMeterNo["CMNum"] = splitInput[1]
+        MultiMeterNo["Meters"]=[request.form.get('MeterNo')]
+        fileName = "MeterList"
+
+    else:
+        fileName = request.files['ufile'].filename
+        splitInput = fileName.split('.')
+        print(splitInput) 
+        print(splitInput[0]) 
+        print(splitInput[1]) 
+        if splitInput[1] != "csv":
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format. Must be CSV format", BackTo="/" )
+
+
+
+        MultiMeterNo= pd.read_csv(request.files['ufile'])
+        alarmSelected = request.form.get('multiAlarm')
+
+
+
+    if len(MultiMeterNo) > 0:
+        if (len(list(MultiMeterNo.columns)) > 2)  :
+                print("file not in the required format....")
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format....", BackTo="/" )
+        else:
+                if (len(list(MultiMeterNo.columns)) == 1):
+                    if alarmSelected == "4" :
+                        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Missing Communication Modules", MSGBody="Missing Communication Module Numbers. Add CM Serials Numbers", BackTo="/" )
+                    MultiMeterNo["CMNum"] = ''
+                MultiMeterNo.columns=["Meters","CMNum"]
+    else:
+        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "No Meters in File", MSGBody="There was no Meter entered", BackTo="/" )
+
+
+    df = pd.read_csv("templates/assets/docs/Alarms.csv")
+    df["id"] =df["id"].astype('str')
+    if alarmSelected == None:
+        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Select Alarm", MSGBody="Select alarm type before proceeding", BackTo="/som/ticket_request" )
+    reqAlarm = df[df["id"] == alarmSelected]
+    Al, ALAgg , DevType = reqAlarm.iloc[0]["Alarm"], reqAlarm.iloc[0]["Key"], reqAlarm.iloc[0]["DevType"]
+    
+    if DevType == "Meter":
+        global SECMD
+        df_Main=pd.DataFrame()
+        df_Main = SECMD[SECMD["fg. Ser. No"].isin(MultiMeterNo["Meters"])]
+        df_Main = pd.merge(df_Main,MultiMeterNo, how='inner', left_on='fg. Ser. No', right_on='Meters' )
+        print(df_Main)
+        print(df_Main.columns)
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        df_Main = df_Main[['Premise','fg. Ser. No','Office','MRU','Equip. No','Cycle','Subscription No','Account No','Latitude','Longitude','Breaker Cap.','Avg. Consp. per day (kWh)','CMNum']]
+        df_Main["Latitude"] = df_Main["Latitude"].str[:10]
+        df_Main["Longitude"] = df_Main["Longitude"].str[:10]
+        df_Main['MeterReadDateTime']=""
+        df_Main = df_Main[:]
+        df_Main = df_Main.reset_index()
+        print("Orders ---> " + str(len(df_Main)))
+        LastTicketNumber = pd.read_csv("templates/assets/docs/LastTicketNum.csv").iloc[0]["Num"]
+        df_Main , LastTicketNumber = FuncAddCounter(LastTicketNumber, df_Main) 
+        df_Main["HostOrderNumber"] = df_Main["Premise"] + "_" + ALAgg
+        df_Main["severity"] = 1
+        df_Main["Work_type"] = "Meter"
+        df_Main["Work_sub_type"] = "Not Connected"
+        df_Main["Incident_description"] = Al
+        df_Main["Classification"] = "NC"
+        df_Main["Device_type"] = "Meter"
+        df_Main["SM_count"] = Al
+        df_Main["Issue_type"] = "Meter"
+        df_Main["MessageID"] = ""
+        df_Main['IncCreationTime'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        df_Main["SRC"] = "ALF"
+        df_Main["MeterType"]=df_Main["fg. Ser. No"].str[:3]
+        df_Main = df_Main.reset_index()
+        temp_conn = pyodbc.connect("DRIVER={SQL Server};SERVER=10.90.10.173,21532;DATABASE=clevest;UID=DataAnalysisReadOnly;PWD=D2#@J5u2Y3;")
+        ClevestData = pd.read_sql("""select SUBSTRING(HostOrderNumber,1,10) as HON, format(count(hostordernumber)+1,'0') as cnt
+        from Clevest.dbo.WorkOrderMapping
+        where OrderTypeId=13 
+        group by SUBSTRING(HostOrderNumber,1,10) """,conn)
+        temp_conn.close()
+        df_Main=pd.merge(df_Main, ClevestData, left_on='Premise', right_on='HON', how='left')
+        df_Main = df_Main.fillna(0)
+        df_Main["HostOrderNumber"] = df_Main["HostOrderNumber"] + "_" + df_Main["cnt"].astype(str)
+        df_Main["NewTicketNumber"] = ""
+        # Why it loops again? it is causing issue during merge the second time round
+        try:
+            for i, row in df_Main.iterrows():
+                print(row)
+                print(i)
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                xcc = "ALF{:05d}".format(row["TicketNumber"])
+                df_Main.loc[df_Main["HostOrderNumber"]==row["HostOrderNumber"],"NewTicketNumber"] = xcc
+                BGs = pd.read_csv(r"templates/assets/docs/BGs.csv", dtype=str)
+                df_Main["Areakey"] = df_Main["Office"].str[:2]
+                df_Main = pd.merge(df_Main, BGs, left_on='Areakey' , right_on="ACode", how='left')
+                print(df_Main)
+                print(df_Main.columns)
+                print("____________________________")
+                ExpFileName = ALAgg + "_" + datetime.now().strftime('%Y%m%dT%H%M%S') + "_SOMNO.csv"
+                # TODO Save file to SingleUploadFile
+                df_Main[['HostOrderNumber','severity', 'fg. Ser. No', 'Latitude', 'Longitude','Avg. Consp. per day (kWh)','Cycle','Work_type', 'Work_sub_type', 'Incident_description', 'Breaker Cap.' , 'Account No' ,  'Equip. No', 'MRU', 'Premise', 'Office', "MeterType", 'Classification', 'Device_type', 'BGiD',  'SM_count', 'Issue_type', 'IncCreationTime', 'MeterReadDateTime', 'MessageID', 'NewTicketNumber' , 'Subscription No','SRC','CMNum' ]].to_csv("C:/Users/Maram.Alkhatib/OneDrive - alfanar/Documents/SMP2022/templates/assets/docs/"+ExpFileName, index=False)
+                MultiMeterNo[~MultiMeterNo["Meters"].isin(df_Main["fg. Ser. No"])].to_csv("templates/assets/docs/"+fileName.replace(".csv","_Missing.csv"))
+                with open("templates/assets/docs/LastTicketNum.csv", 'w') as f:
+                    f.write("Num\n")
+                    f.write(str(LastTicketNumber))
+                print("Process finished. ----> " + ExpFileName)
+        except:
+            pass
+        
+     
+        path = "templates/assets/docs/"+ fileName.replace(".csv","_Missing.csv" )
+        return send_file(path, as_attachment=True)
+
+    else:
+        print("DCU")
+    # mailer.SendEmail(['maram.alkhatib@alfanar.com'],[],[],"SOM Tickets","SOM Tickets will be created. Kindly check in system in 15 minutes. \n Any missing meters are in attached file" ,[fileName.replace(".csv","_Missing.csv" )])
+    # mailIt.SendEmail(['maram.alkhatib@alfanar.com'],[],"SOM Tickets","SOM Tickets will be created. Kindly check in system in 15 minutes. \n Any missing meters are in attached file",[path])
+    # return render_template("SOM_Upload1.html", alarms = df)
+    return render_template("GeneralMessage.html",msgcolor = "kime", MsgTitle = "SOM Tickets Created", MSGBody="SOM Tickets will be created ", BackTo="/som/ticket_request" )
+
+
+
 
 @app.route('/goo', methods=["GET"])
 def goo():
@@ -2058,12 +2264,7 @@ FROM
     FROM   HES.dbo.SAI_NCRs 
 
 ) as NCR
-
-
-
-
-      
-                                            
+    
                                             inner join SAI_UserAccount as CrUA on CrUA.id = NCR.CreatedBy
                                             LEFT JOIN HES.dbo.SAI_BM_Reasons as RES on RES.id=NCR.NCRReasonID   
                                             LEFT JOIN HES.dbo.SAI_NCR_Statuses as ST ON ST.id = NCR.Status  
@@ -3121,6 +3322,6 @@ def cPlanCreate():
 #    return m.get_root().render()
 
 #app.run(host='0.0.0.0',port=80,debug=False,threaded=True)
-app.run(host='0.0.0.0',port=7080 if AppDebugMode else 80 ,debug=AppDebugMode,threaded=True)
+app.run(host='0.0.0.0',port=7080 ,debug=True,threaded=True)
 #context = ('t-mwfm.alfanar.com.crt','t-mwfm.alfanar.com.key')
 #app.run(host='0.0.0.0',port=443,debug=True,threaded=True, ssl_context=context)
