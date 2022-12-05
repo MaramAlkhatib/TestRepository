@@ -4,11 +4,12 @@ from asyncio.windows_events import NULL
 import csv
 from itertools import groupby
 import re
+from bs4 import BeautifulSoup
 from opcode import opname
 import GetOrderPhotos as GOP
 import os, random, math, smtplib, ssl, json,  time, glob
 from posixpath import split
-from flask import Flask, request,  render_template, redirect, make_response, send_from_directory,abort, send_file
+from flask import Flask, request,  render_template, redirect, make_response, send_from_directory,abort, send_file,Response
 from pandas.core.frame import DataFrame
 from pandas.io import excel
 import requests
@@ -111,7 +112,7 @@ SECMD =pd.DataFrame()
 
 AlFanarMeters = pd.read_sql("select DeviceID as Serials from alf_meters ",conn)
 
-AppDebugMode = False
+AppDebugMode = True
 
 statusList={
         "Created":"success",
@@ -227,7 +228,8 @@ def ReloadSECData():
     SECMD['fg. Ser. No']= SECMD['fg. Ser. No'].str.upper()
     GMD.SECMDHere = SECMD
 
-ReloadSECData()
+
+# ReloadSECData()
 
 def TestAndExtendSession(SID):
     global ActiveSessions
@@ -520,7 +522,7 @@ def PrmiseData2():
     SID = request.cookies.get('SID')
     if TestAndExtendSession(SID):
         if CheckUserAuth(SID, "MSISD"):
-            return render_template('SearchMeter.html')
+            return render_template('SearchMeterV2.html')
         else:
             return render_template("GeneralMessage.html", MsgTitle="Meter Search Application", MSGBody="Sorry, you don't have authority for this action.", msgcolor = "red", BackTo="../")
     else:
@@ -536,7 +538,7 @@ def PrmiseData():
     SID = request.cookies.get('SID')
     if TestAndExtendSession(SID):
         if CheckUserAuth(SID, "MSISD"):
-            return render_template('SearchMeter.html')
+            return render_template('SearchMeterV2.html')
         else:
             return render_template("GeneralMessage.html", MsgTitle="Meter Search Application", MSGBody="Sorry, you don't have authority for this action.", msgcolor = "red", BackTo="../")
     else:
@@ -588,14 +590,14 @@ def ShowOrderData():
                                     </div>
                                     </form>'''
                 SiteVisitHTMLStr = '''<form action="../sitevisit/new" method="POST">
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="MNum2" hidden id="MNum2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['MeterSN'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="SS2" hidden id="SS2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['SubScriptionNum'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="office2" hidden id="office2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['Office'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="long2" hidden id="long2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['Longitude'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="latt2" hidden id="latt2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['Latitude'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="premise2" hidden id="premise2" style="font-weight: bold; text-align: center;" value="'''+ SData['data']['Premise'] +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="mtype" hidden id="mtype" style="font-weight: bold; text-align: center;" value="'''+ mtype +'''"> </input>
-                                      <input class="w3-input w3-border" type="text" placeholder="" required name="acc2" hidden id="acc2" style="font-weight: bold; text-align: center;" value="'''+ accountNum  +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="MNum2" hidden id="MNum2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['MeterSN']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="SS2" hidden id="SS2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['SubScriptionNum']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="office2" hidden id="office2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['Office']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="long2" hidden id="long2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['Longitude']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="latt2" hidden id="latt2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['Latitude']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="premise2" hidden id="premise2" style="font-weight: bold; text-align: center;" value="'''+ str(SData['data']['Premise']) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="mtype" hidden id="mtype" style="font-weight: bold; text-align: center;" value="'''+ str(mtype) +'''"> </input>
+                                      <input class="w3-input w3-border" type="text" placeholder="" required name="acc2" hidden id="acc2" style="font-weight: bold; text-align: center;" value="'''+ str(accountNum)  +'''"> </input>
                                     <div style="text-align: center;">
                                     <button type="Submit" class="btn btn-primary" style="width: 50%"><i class='bx bxs-plane-alt' ></i><span> </span> Open Site Visit</button>  
                                     </div>
@@ -1683,10 +1685,10 @@ def OpenClevestOrders():
                 # f.flush()
                 f.write(' =======> (4) \n')
                 f.flush()
-                # resp = requests.post(ClevestTargetLink, data=json.dumps(clMsg),headers=headers,auth=auth)
-                # if resp.status_code == 200:
-                resp = 200
-                if resp == 200:
+                resp = requests.post(ClevestTargetLink, data=json.dumps(clMsg),headers=headers,auth=auth)
+                if resp.status_code == 200:
+                # resp = 200
+                # if resp == 200:
                     f.write(' =======> (5) \n')
                     f.flush()
                     print(Fore.GREEN + "Clevest Order"+NewHON+" Created" +Style.RESET_ALL)
@@ -1932,7 +1934,7 @@ def MultiCreateBMUploader():
 
                         SData = SECMD[SECMD["Premise"]==r.Premise]
                         print("SEC DatA "+SECMD["Premise"])
-                        print("SEC DatA "+SECMD["Premise"])
+                   
                         print("CSV Premise "+r.Premise)
                         logger.info("CSV Premise "+r.Premise)
 
@@ -1949,8 +1951,8 @@ def MultiCreateBMUploader():
                                 "DCU" :DCU,
                                 "Reason" : Reason,
                                 "SubReason" : SubReason,
-                                "UName" : '54662',
-                                "UId" : '35',
+                                "UName" : '53394',
+                                "UId" : '75',
                                 # "UName" : ActiveSessions[SID]["UserName"],
                                 # "UId" : ActiveSessions[SID]["UserId"],
                                 "Mail" : ActiveSessions[SID]["Mail"],
@@ -1983,8 +1985,301 @@ def MultiCreateBMUploader():
 
 @app.route('/test', methods=['GET'])
 def AA():
+    appTxt = "/bm"
+    ThisAuth = 'CMSS'
+    ThisRoute = '/test'
+    MTitle = "Site Multi Equipment Replacement"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        if CheckAppInSession(SID, appTxt):
+            if CheckUserAuth(SID, ThisAuth):
+
+                return render_template("ConnectionDevice.html")
+
+            else:
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        else:
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+
+
+@app.route('/hes/SIMInfo', methods=['GET'])
+def simDataReq():
+    appTxt = "/hes"
+    ThisAuth = 'CMSS'
+    ThisRoute = '/hes/SIMInfo'
+    MTitle = "SIM Information"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        if CheckAppInSession(SID, appTxt):
+            if CheckUserAuth(SID, ThisAuth):
+
+                return render_template("ConnectionDevice.html", tables=pd.DataFrame())
+
+            else:
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        else:
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+
+
+ 
+@app.route('/hes/SIMInfo/Get', methods=['POST','GET'])
+def simDataRetrival():
+    appTxt = "/hes"
+    ThisAuth = 'CMSS'
+    ThisRoute = '/hes/SIMInfo'
+    MTitle = "SIM Information"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        if CheckAppInSession(SID, appTxt):
+            if CheckUserAuth(SID, ThisAuth):
+                SQLstr = """SELECT  
+                                DeviceId,
+                                CONVERT(varchar,IMSI) as IMSI,
+                                CONVERT(varchar,ICCID)  as ICCID   
+                            FROM 
+                                HES.dbo.SEC_LinkSIM
+                            WHERE  
+                                SEARCHMETHODPLACEHOLDER IN ('SEARCHMETERPLACEHOLDER')"""
+                requestType = request.form.get('reqType')
+
+                if requestType == 'S':
+                        searchmethod =  str(request.form.get("searchmethod"))
+                        SIMInfoList=  request.form.get("SCriteria")
+                        conn = pyodbc.connect('DRIVER={SQL Server};SERVER=10.90.10.173,21532;DATABASE=HES;UID=clevest;PWD=!C13ve$T')
+                        SQLstr= pd.read_sql(SQLstr.replace("SEARCHMETHODPLACEHOLDER",searchmethod).replace("SEARCHMETERPLACEHOLDER",SIMInfoList),conn)
+                        conn.close()
+                        return render_template('ConnectionDevice.html', tables=SQLstr, titles=SQLstr.columns.values)
+
+                else:
+                    searchmethod =  str(request.form.get("searchmethodM"))
+                    fileName = request.files['ufile'].filename
+                    splitInput = fileName.split('.')
+                    if splitInput[1] != "csv":
+                        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format. Must be CSV format", BackTo="/hes/SIMInfo" )
+                    SIMInfo= pd.read_csv(request.files['ufile'])
+                    if len(SIMInfo) > 0:
+                            if (len(list(SIMInfo.columns)) > 1)  :
+                                print("file not in the required format....")
+                                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format....", BackTo="/hes/SIMInfo" )
+                            else:
+                                SIMInfo.columns=[searchmethod]
+                    else:
+                            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "No Meters in File", MSGBody="There was no Meter entered", BackTo="/hes/SIMInfo" )
+                    SIMInfoList = SIMInfo[searchmethod].to_string(index=False)
+                    SIMInfoList = SIMInfoList.replace("\n","','")
+
+                    conn = pyodbc.connect('DRIVER={SQL Server};SERVER=10.90.10.173,21532;DATABASE=HES;UID=clevest;PWD=!C13ve$T')
+                    SQLstr= pd.read_sql(SQLstr.replace("SEARCHMETHODPLACEHOLDER",searchmethod).replace("SEARCHMETERPLACEHOLDER",SIMInfoList),conn)
+                    conn.close()
+                    resp = make_response(SQLstr.to_csv(index = False))
+                    resp.headers["Content-Disposition"] = "attachment; filename=export.csv"
+                    resp.headers["Content-Type"] = "text/csv"
+                    return resp
+                # return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="Printed", BackTo="/" )
+
+            else:
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        else:
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+
+
+@app.route('/goo', methods=["GET"])
+def goo():
     # return render_template("home.html")
-    return render_template("ServicePage.html")
+    # return render_template("home2.html")
+    return render_template("AllApplication2.html")
+
+
+
+@app.route("/bar",methods=['GET','POST'])
+def data_page():
+    
+    if request.method == 'POST':
+        filesDict = request.files.to_dict()
+        uploadData=request.files['media']
+        data_file_name = uploadData.filename
+        uploadData.save(os.path.join(app.root_path,'uploads\\'+data_file_name))
+
+    return render_template("upload.html")
+
+
+
+@app.route("/home",methods=['GET','POST'])
+def data_page2():
+    return render_template("Restarting.html")
+
+@app.route('/progress')
+def progress():
+    def generate():
+        global SECMD 
+        SECfiles = glob.glob( "SECMasterData/*.txt")
+        li=[]
+        i=5
+        for filename in SECfiles:
+                yield "data:" + str(i) + "\n\n"
+                dfx = pd.read_csv(filename,delimiter=';',header=None, dtype=str,encoding = "utf-8",quoting=csv.QUOTE_NONE)
+                i+=1
+                # print ('\r |' + ('#' * i) + ('-' * (len(SECfiles) - i)) + '| File loaded -- > ' + filename , end='')
+                li.append(dfx)
+        SECMD =  pd.concat(li, axis=0, ignore_index=True)
+        cols=['Premise','MRU','Office','fg. Ser. No','Meter Type','Equip. No','Cycle','Last Bill Key','Route Read Seq','MR Note','Date of MR Note','Critical Need','Service Class','Premise Address','City','District','Subscription No','Account No','BPName','BP Type','Latitude','Longitude','Mult. Factor','No. of Dials','Breaker Cap.','Voltage','Phase','Tariff Type','Prev Read Date T','Prev. Read T','Prev Read Date T1','Prev. Read T1','Prev. Read Date T2','Prev. Read T2','Prev Read Date T3','Prev. Read T3','Prev. Read Date T4','Prev. Read T4','Prev. Read Date T5','Prev. Read  T5','Prev. Read Date T6','Prev. Read  T6','Prev. Read Date T7','Prev. Read  T7','Avg. Consp. per day (kWh)','Accl. Premise No','Main Premise No','Conn. Type', 'F1','F2']
+        SECMD.columns=cols
+        # SECMD = pd.concat([SECMD, df], ignore_index=True)
+        SECMD = SECMD.fillna('')
+        SECMD['fg. Ser. No']= SECMD['fg. Ser. No'].str.upper()
+        GMD.SECMDHere = SECMD
+
+    return Response(generate(), mimetype= 'text/event-stream')
+# data_page2() 
+# @app.route("/home",methods=['GET','POST'])
+# def data_page2():
+#     return render_template("Restarting.html")
+
+# @app.route('/progress')
+# def progress():
+#     def generate():
+#         global SECMD 
+#         SECfiles = glob.glob( "SECMasterData/*.txt")
+#         li=[]
+#         i=5
+#         for filename in SECfiles:
+#                 yield "data:" + str(i) + "\n\n"
+#                 dfx = pd.read_csv(filename,delimiter=';',header=None, dtype=str,encoding = "utf-8",quoting=csv.QUOTE_NONE)
+#                 i+=1
+#                 # print ('\r |' + ('#' * i) + ('-' * (len(SECfiles) - i)) + '| File loaded -- > ' + filename , end='')
+#                 li.append(dfx)
+#         SECMD =  pd.concat(li, axis=0, ignore_index=True)
+#         cols=['Premise','MRU','Office','fg. Ser. No','Meter Type','Equip. No','Cycle','Last Bill Key','Route Read Seq','MR Note','Date of MR Note','Critical Need','Service Class','Premise Address','City','District','Subscription No','Account No','BPName','BP Type','Latitude','Longitude','Mult. Factor','No. of Dials','Breaker Cap.','Voltage','Phase','Tariff Type','Prev Read Date T','Prev. Read T','Prev Read Date T1','Prev. Read T1','Prev. Read Date T2','Prev. Read T2','Prev Read Date T3','Prev. Read T3','Prev. Read Date T4','Prev. Read T4','Prev. Read Date T5','Prev. Read  T5','Prev. Read Date T6','Prev. Read  T6','Prev. Read Date T7','Prev. Read  T7','Avg. Consp. per day (kWh)','Accl. Premise No','Main Premise No','Conn. Type', 'F1','F2']
+#         SECMD.columns=cols
+#         # SECMD = pd.concat([SECMD, df], ignore_index=True)
+#         SECMD = SECMD.fillna('')
+#         SECMD['fg. Ser. No']= SECMD['fg. Ser. No'].str.upper()
+#         GMD.SECMDHere = SECMD
+
+#     return Response(generate(), mimetype= 'text/event-stream')
+
+
+# @app.route('/progress2')
+# def progress2():
+
+#     def generate():
+#         x = 0
+#         while x <= 100:
+#             yield "data:" + str(x) + "\n\n"
+#             x = x + 10
+#             time.sleep(0.5)
+#     return Response(generate(), mimetype= 'text/event-stream')
+
+
+
+
+
+
+@app.route('/dummy')
+def dummy():
+    appTxt = "/dummy"
+    ThisAuth = 'XXXX'
+    ThisRoute = 'dummy/sub'
+    MTitle = "DUMMY"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        if CheckAppInSession(SID, appTxt):
+            if CheckUserAuth(SID, ThisAuth):
+
+                return render_template('ServicePage.html')
+
+            else:
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        else:
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+
+@app.route('/SIMSiteLinkage ', methods = ['GET'])
+def getSIM():
+    appTxt = "/SIMSiteLinkage"
+    # ThisAuth ='AAAA'
+    ThisRoute = '/SIMSiteLinkage'
+    MTitle = "Site SIM Linkage"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        # if CheckAppInSession(SID, appTxt):
+            # if CheckUserAuth(SID, ThisAuth):
+
+                return render_template('SiteSIMLinkage.html')
+            # else:
+            #     return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        # else:
+        #     return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+            
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+
+
+@app.route('/SIMSiteLinkage/UploadSIMLink', methods = ['POST'])
+def AddSIM():
+    appTxt = "/SIMSiteLinkage"
+    # ThisAuth ='AAAA'
+    ThisRoute = '/SIMSiteLinkage/UploadSIMLink'
+    MTitle = "Site SIM Linkage"
+    SID = request.cookies.get('SID')
+    if TestAndExtendSession(SID):
+        # if CheckAppInSession(SID, appTxt):
+            # if CheckUserAuth(SID, ThisAuth):
+
+                # TODO: Upload to DB
+
+                pass
+
+            # else:
+            #     return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
+        # else:
+        #     return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to open this application.", BackTo="/" )
+            
+    else:    
+        resp = make_response(render_template("Login.html", NextPage = ThisRoute))
+        resp.set_cookie("LoggedIn","False")
+        resp.set_cookie("SID","")
+        resp.set_cookie("ExpireDate", "")
+        return resp
+
+
+# ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+
+
 
 
 
@@ -2007,11 +2302,16 @@ def FuncAddCounter(Offset, df):
     return df , (ii+dd)
 
 
+
 @app.route('/som/createrequest', methods=['POST'])
 def BB_2():
-    # TODO:-
-        # Add confirmation POPUP in FE 
-
+# Confirm the following
+# File is CSV format
+# alarm 4 contain all CM's for meters
+# Missing file created for mesiing only (does not halt the process)
+# Confirm that an alarm is selected 
+# confirm single is uploaded correctly 
+# 
     requestType = request.form.get('reqType')
     if requestType == 'S':
         MultiMeterNo = pd.DataFrame()
@@ -2021,7 +2321,7 @@ def BB_2():
             MultiMeterNo["Meters"] = splitInput[0]
             MultiMeterNo["CMNum"] = splitInput[1]
         MultiMeterNo["Meters"]=[request.form.get('MeterNo')]
-        fileName = "MeterList"
+        fileName = "MeterList.csv"
 
     else:
         fileName = request.files['ufile'].filename
@@ -2030,7 +2330,7 @@ def BB_2():
         print(splitInput[0]) 
         print(splitInput[1]) 
         if splitInput[1] != "csv":
-            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format. Must be CSV format", BackTo="/" )
+            return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format. Must be CSV format", BackTo="/som/request" )
 
 
 
@@ -2042,21 +2342,21 @@ def BB_2():
     if len(MultiMeterNo) > 0:
         if (len(list(MultiMeterNo.columns)) > 2)  :
                 print("file not in the required format....")
-                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format....", BackTo="/" )
+                return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Invalid File Format", MSGBody="file not in the required format....", BackTo="/som/request" )
         else:
                 if (len(list(MultiMeterNo.columns)) == 1):
-                    if alarmSelected == "4" :
-                        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Missing Communication Modules", MSGBody="Missing Communication Module Numbers. Add CM Serials Numbers", BackTo="/" )
+                    # if alarmSelected == "4" :
+                    #     return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Missing Communication Modules", MSGBody="Missing Communication Module Numbers. Add CM Serials Numbers", BackTo="/som/request" )
                     MultiMeterNo["CMNum"] = ''
                 MultiMeterNo.columns=["Meters","CMNum"]
     else:
-        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "No Meters in File", MSGBody="There was no Meter entered", BackTo="/" )
+        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "No Meters in File", MSGBody="There was no Meter entered", BackTo="/som/request" )
 
 
     df = pd.read_csv("templates/assets/docs/Alarms.csv")
     df["id"] =df["id"].astype('str')
     if alarmSelected == None:
-        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Select Alarm", MSGBody="Select alarm type before proceeding", BackTo="/som/ticket_request" )
+        return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "Select Alarm", MSGBody="Select alarm type before proceeding", BackTo="/som/request" )
     reqAlarm = df[df["id"] == alarmSelected]
     Al, ALAgg , DevType = reqAlarm.iloc[0]["Alarm"], reqAlarm.iloc[0]["Key"], reqAlarm.iloc[0]["DevType"]
     
@@ -2102,49 +2402,34 @@ def BB_2():
         df_Main["HostOrderNumber"] = df_Main["HostOrderNumber"] + "_" + df_Main["cnt"].astype(str)
         df_Main["NewTicketNumber"] = ""
         # Why it loops again? it is causing issue during merge the second time round
-        try:
-            for i, row in df_Main.iterrows():
-                print(row)
-                print(i)
-                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        
+        MultiMeterNo[~MultiMeterNo["Meters"].isin(df_Main["fg. Ser. No"])].to_csv("templates/assets/docs/"+fileName.replace(".csv","_Missing.csv"))
+        BGs = pd.read_csv(r"templates/assets/docs/BGs.csv", dtype=str)
+        df_Main["Areakey"] = df_Main["Office"].str[:2]
+        df_Main = pd.merge(df_Main, BGs, left_on='Areakey' , right_on="ACode", how='left')
+        for i, row in df_Main.iterrows():
+                print("CNUM: " + str(row["CMNum"]))
+                print(row["CMNum"]==None)
+                if (alarmSelected == "4") and not row["CMNum"]:
+                    return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = "No Meters in File", MSGBody="NCCM alarms must contain a cross-ponding communication module number for each meter.", BackTo="/som/request" )  
                 xcc = "ALF{:05d}".format(row["TicketNumber"])
                 df_Main.loc[df_Main["HostOrderNumber"]==row["HostOrderNumber"],"NewTicketNumber"] = xcc
-                BGs = pd.read_csv(r"templates/assets/docs/BGs.csv", dtype=str)
-                df_Main["Areakey"] = df_Main["Office"].str[:2]
-                df_Main = pd.merge(df_Main, BGs, left_on='Areakey' , right_on="ACode", how='left')
-                print(df_Main)
-                print(df_Main.columns)
-                print("____________________________")
                 ExpFileName = ALAgg + "_" + datetime.now().strftime('%Y%m%dT%H%M%S') + "_SOMNO.csv"
-                # TODO Save file to SingleUploadFile
                 df_Main[['HostOrderNumber','severity', 'fg. Ser. No', 'Latitude', 'Longitude','Avg. Consp. per day (kWh)','Cycle','Work_type', 'Work_sub_type', 'Incident_description', 'Breaker Cap.' , 'Account No' ,  'Equip. No', 'MRU', 'Premise', 'Office', "MeterType", 'Classification', 'Device_type', 'BGiD',  'SM_count', 'Issue_type', 'IncCreationTime', 'MeterReadDateTime', 'MessageID', 'NewTicketNumber' , 'Subscription No','SRC','CMNum' ]].to_csv("C:/Users/Maram.Alkhatib/OneDrive - alfanar/Documents/SMP2022/templates/assets/docs/"+ExpFileName, index=False)
-                MultiMeterNo[~MultiMeterNo["Meters"].isin(df_Main["fg. Ser. No"])].to_csv("templates/assets/docs/"+fileName.replace(".csv","_Missing.csv"))
                 with open("templates/assets/docs/LastTicketNum.csv", 'w') as f:
                     f.write("Num\n")
                     f.write(str(LastTicketNumber))
                 print("Process finished. ----> " + ExpFileName)
-        except:
-            pass
-        
-     
         path = "templates/assets/docs/"+ fileName.replace(".csv","_Missing.csv" )
         return send_file(path, as_attachment=True)
 
     else:
         print("DCU")
-    # mailer.SendEmail(['maram.alkhatib@alfanar.com'],[],[],"SOM Tickets","SOM Tickets will be created. Kindly check in system in 15 minutes. \n Any missing meters are in attached file" ,[fileName.replace(".csv","_Missing.csv" )])
-    # mailIt.SendEmail(['maram.alkhatib@alfanar.com'],[],"SOM Tickets","SOM Tickets will be created. Kindly check in system in 15 minutes. \n Any missing meters are in attached file",[path])
-    # return render_template("SOM_Upload1.html", alarms = df)
-    return render_template("GeneralMessage.html",msgcolor = "kime", MsgTitle = "SOM Tickets Created", MSGBody="SOM Tickets will be created ", BackTo="/som/ticket_request" )
+     
+    return render_template("GeneralMessage.html",msgcolor = "kime", MsgTitle = "SOM Tickets Created", MSGBody="SOM Tickets will be created ", BackTo="/som/request" )
 
 
 
-
-@app.route('/goo', methods=["GET"])
-def goo():
-    # print(request.form.get('Action'))
-    return render_template("home.html")
-    # return request.form.get('Action') + "-->" + request.form.get('Req11') + "-->" + request.form.get('ReqId')
 
 
 @app.route('/um')
@@ -2165,7 +2450,7 @@ def HESFiles():
     if TestAndExtendSession(SID):
         if CheckAppInSession(SID, appTxt):
             if CheckUserAuth(SID, ThisAuth):
-                return render_template('MeterData.html')
+                return render_template('MeterDataV2.html')
             else:
                 return render_template("GeneralMessage.html",msgcolor = "Red", MsgTitle = MTitle, MSGBody="You don't have authority to do this action.("+ ThisAuth +")", BackTo="/" )
         else:

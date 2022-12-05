@@ -1,0 +1,194 @@
+{% extends "ServicePage.html" %} 
+{% block top_libraries %}   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>{% endblock %}
+{% block card_title %} Plan Management {% endblock %}
+{% block card_header %} Set Orders Plan {% endblock %}
+{% block card_content %}
+    
+<form action="/plan/upload" method="POST" enctype="multipart/form-data">
+    <div class="form-group" style="color: rgb(255, 255, 255);font-size: large;">
+    <h3>Please Choose Type </h3>
+    {% if 'PMRE' in data %}
+    <input class="form-check-input" type="radio" id="flexRadioDefault1" value="plan" name="optradio" oninput='on_change(event)' checked> 
+    <label class="form-check-label" for="flexRadioDefault1">
+        Upload Plan
+      </label>
+    <br>
+    {% endif %}
+    {% if 'UAAS' in data %}
+    <input class="form-check-input" type="radio" id="flexRadioDefault2" value="AutoAssign" name="optradio" oninput='on_change(event)' {% if 'PMRE' not in data %} checked {% endif %} > 
+    <label class="form-check-label" for="flexRadioDefault2">
+        Upload AutoAssign
+    </label>
+    {% endif %}
+</div>
+{% if 'PMRE' in data %}
+        <div class="form-group"  id="Plan"  style="color: rgb(255, 255, 255);">
+            <h3>Upload CSV File:-</h3>
+            <h5>(HostOrderNumber only)</h5>
+            <div class="custom-file">
+                <input type="file" accept=".csv"  class="custom-file-input" name="csvfile" id="File" onchange="return fileValidation()"  >
+                <label class="custom-file-label" name="file" for="customFile" id="fileplanlable">Choose file</label>
+
+            </div>
+            <br> <br> <br>
+            <h3>Please Choose Plan Date <h3 style="color: rgb(250, 151, 106);">{{TPIC}}</h3></h3>
+            <div class="input-group date">
+                <input type='date' min='{{mnDate}}' max='{{mxDate}}' value="{{cDate}}" class="form-control" name="PlanDate" required></input>
+        </div>
+    </div>
+{% endif %}
+    {% if 'UAAS' in data %}
+    <div class="form-group" id="AutoAssigndiv" style="{% if 'PMRE' in data %}display:none;{% endif %}color: rgb(255, 255, 255);" >
+        <h3>Upload CSV File:-</h3>
+        <h5> (HostOrderNumber and Worker Name)</h5>
+        <div class="custom-file">
+            <input type="file" accept=".csv"  class="custom-file-input" name="csvfileAssign" id="AutoAssignFile" onchange="return fileValidation2()"  >
+            <label class="custom-file-label" name="csvfileAssign" id="AutoAssignFileid" for="customFile" >Choose file</label>
+        </div>
+        <br> <br>
+    </div>
+    {% endif %}
+    <a>
+        <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="width: 50%"><i  ></i><span> </span> submit</button>
+        </div>
+    </a>
+</form>
+<h3 style="color: {{msgCLR}};"><b><center>{{TXTComment}}</center></b></h3>
+
+{% if 'tbl' in fData %}
+    <div style="text-align: center;">
+        <table style="border: 1px solid black;">
+            <thead style="background-color: aqua;">
+            <td style="width: 30px; border: 1px solid black; text-align: center;">Ser</td>
+            <td style="width: 400px; border: 1px solid black; text-align: center;">Status</td>
+            <td style="width: 50px; border: 1px solid black; text-align: center;">Count</td>
+            </thead>
+            {% for xr in fData['tbl'] %}
+                <tr style="background-color: white;">
+                    <td style="width: 30px; border: 1px solid black; text-align: center;">{{ xr[0] }}</td>
+                    <td style="width: 400px; border: 1px solid black; text-align: center;">{{ xr[1] }}</td>
+                    <td style="width: 50px; border: 1px solid black; text-align: center;">{{ xr[2] }}</td>
+                </tr>
+            {% endfor %} 
+        </table>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block footer_scripts %}
+
+<script>
+    function on_change(el){
+          var selectedOption = el.target.value;
+          if (selectedOption === 'plan') {
+            document.getElementById('Plan').style.display = 'block';
+          } else {
+            document.getElementById('Plan').style.display = 'none'; // Hide el
+          }
+          if (selectedOption === 'AutoAssign') {
+            document.getElementById('AutoAssigndiv').style.display = 'block';
+          } else {
+            document.getElementById('AutoAssigndiv').style.display = 'none'; // Hide el
+          }
+        }
+
+   
+    function fileValidation() {
+        var fileInput = document.getElementById('File');
+        var filePath = fileInput.value;
+        var textFile = $("#File").get(0).files[0];
+        var reader = new FileReader();
+        reader.readAsText(textFile);
+        var obj = document.getElementById("fileplanlable");
+        obj.innerText = fileInput.files[0].name;
+        reader.onload = function(e) {
+            var rawLog = reader.result;
+            console.log(rawLog);
+            var match = rawLog.match(/\r?\n/g);
+            var allowedExtensions = /(\.csv)$/i;
+        if (!allowedExtensions.exec(filePath)) {
+            swal({
+                title: "Error",
+                text: "Invalid File Type Please Upload CSV File Only",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            fileInput.value = '';
+            obj.innerText ="Choose File";
+            return false;
+        }
+            len = match.length
+            var allDataLines = rawLog.split(/\r\n|\n/);
+            var headers = allDataLines[0].split(',');
+            console.log(allDataLines)
+            if (headers.length > 1) {
+                swal({
+                    title: "Error",
+                    text: "Upload a file with one column only (HostOrderNumber)",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                obj.innerText ="Choose File";
+            return false;
+            }
+            if (len >= 2000) {
+                swal({
+                    title: "Error",
+                    text: "Number of rows shouldn't exceed 2000 row",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                obj.innerText ="Choose File";
+            return false;
+            }
+        };        
+    }
+
+    function fileValidation2() {
+        var fileInput = document.getElementById('AutoAssignFile');
+        var filePath = fileInput.value;
+        var textFile = $("#AutoAssignFile").get(0).files[0];
+        var reader = new FileReader();
+        reader.readAsText(textFile);
+        var obj = document.getElementById("AutoAssignFileid");
+        obj.innerText = fileInput.files[0].name;
+        reader.onload = function(e) {
+            var rawLog = reader.result;
+            console.log(rawLog);
+            var match = rawLog.match(/\r?\n/g);
+            var allowedExtensions = /(\.csv)$/i;
+        if (!allowedExtensions.exec(filePath)) {
+            swal({
+                title: "Error",
+                text: "Invalid File Type Please Upload CSV File Only",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            fileInput.value = '';
+            obj.innerText ="Choose File";
+            return false;
+        }
+            len = match.length
+            var allDataLines = rawLog.split(/\r\n|\n/);
+            var headers = allDataLines[0].split(',');
+            console.log(allDataLines)
+            if (headers.length != 2) {
+                swal({
+                    title: "Error",
+                    text: "Upload a file with two column only (HostOrderNumber) and (WorkerNameOutbound)",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                obj.innerText ="Choose File";
+            return false;
+            } 
+        };  
+    }
+</script>
+{% endblock %}

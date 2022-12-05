@@ -1828,9 +1828,6 @@ def MultiCreateBMUploader():
                 if file:
                     df = pd.read_csv(file,dtype=str)
                     df.columns = ['Premise']
-                    # print(df)
-                    # logging.debug(df)
-
                     SearchKey ='PRE'
 
        

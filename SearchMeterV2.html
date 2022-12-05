@@ -1,0 +1,48 @@
+{% extends "ServicePage.html" %} 
+{% block card_title %} Find Meter Location {% endblock %}
+{% block card_header %} Search Smart meter{% endblock %} 
+{% block card_content %}
+
+<div class="mb-3">
+    <form action="/sm/showdata" method="POST">
+        <label for="searchmethod" class="form-label">Search by: </label>
+        <select class="form-select" name="searchmethod" id="searchmethod" style="width: 100%;">
+            <option value="MSN" data-content="Enter Meter Serial Number">Meter Serial Number</option>
+            <option value="PRE" data-content="Enter Premise" selected>Premise</option>
+            <!-- <option value="DCU"data-content="Enter DCU Premise Number">DCU Premise Number</option> -->
+            <option value="SBS" data-content="Enter Subscription">Subscription</option>
+            <option value="ACN" data-content="Enter Account Number">Account Number</option>
+        </select>
+        <input class="form-control w3-input w3-border" type="text" name="SCriteria" id="SCriteria" placeholder="Enter Premise/Meter Number Here" style="margin-top: 10px;" maxlength="25" required />
+
+        <br />
+
+        <label for="searchmethod" class="form-label">Search Within: </label>
+        <select class="form-select" name="searchsource" id="searchsource" disabled>
+            <option value="SEC" data-content="Enter Meter Serial Number" selected>SEC Master Data</option>
+            <option value="CLV" data-content="Enter Premise">Clevest Data</option>
+        </select>
+
+        <br>
+
+      
+          <a href='/'>
+            <button type="button" class="btn btn-primary">Home</button>
+        </a>
+        <button type="Submit" class="btn btn-primary" style="float: right;">
+            <i class="fa fa-paper-plane"></i>Search
+          </button></a>
+
+    </form>
+</div>
+
+{% endblock %}
+
+{% block footer_scripts %}
+<script>
+$("#method").change(function() {
+    $('#help-text').text($('option:selected').attr('data-content')).change();
+})
+</script>
+{% endblock %}
+

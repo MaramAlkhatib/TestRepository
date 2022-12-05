@@ -1,0 +1,25 @@
+{% extends "ServicePage.html" %}
+{% block card_title %} HES Meter Files {% endblock %}
+{% block card_header %}  HES Meter Files {% endblock %}
+{% block card_content %}
+
+<div class="mb-3">
+    <form action="/hes/download" method="POST">
+        <label for="LocData" class="form-label">Enter Meters Comma Seperated:</label>
+        <textarea class="form-control" name="reasonEn" id="reason" rows="3"></textarea>
+
+            <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="width: 50%; margin-top: 10px;" name="action" value="COMP"><i  ></i><span> </span> Companion</button>
+            </div>
+            
+            <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="width: 50%;  margin-top: 10px;" name="action" value="SIM"><i  ></i><span> </span> SIM Data</button>
+            </div>
+            
+            <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="width: 50%;  margin-top: 10px;" name="action" value="SIMLink"><i  ></i><span> </span> SIM Link</button>
+            </div>
+    </form>
+</div>
+
+{% endblock %}
