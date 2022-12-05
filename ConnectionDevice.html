@@ -1,0 +1,170 @@
+{% extends "ServicePage.html" %} 
+{% block top_scripts %}
+<script type="text/javascript">
+    // Clear other fields when other is selected 
+    function SetReqType(rType) {
+                console.log(document.getElementById("reqType").value)
+                document.getElementById("reqType").value = rType;
+            }
+
+
+
+    function formSettings(){
+        uploadType = document.getElementById("reqType").value;
+        multiInput = document.getElementById("multiFileInput")
+        singleInput = document.getElementById("MeterNo")
+        singleAlarm = document.getElementsByClassName("singleAlarm") 
+        multiAlarm = document.getElementsByClassName("multiAlarm") 
+      
+        if (uploadType == 'S') {
+            console.log('Should be S '+ uploadType)
+            singleInput.required = true;
+            multiInput.required = false;
+
+            if (singleAlarm.value == undefined){
+                console.log("SELECT an Alarm")
+                singleAlarm.required = true;
+
+            }
+
+        }
+        else{
+            console.log('Should be M ' + uploadType)
+            singleInput.required = false;
+            multiInput.required = true;
+
+            if (multiAlarm.value == undefined){
+                console.log("SELECT an Alarm")
+                multiAlarm.required = true;
+
+            }
+        }
+}
+
+
+function CopyTable() {
+  var copyBtn = document.getElementById('copy_btn')
+  var urlField = document.querySelector('table');
+   console.log(urlField)
+   console.log("urlField")
+  var range = document.createRange();  
+  range.selectNode(urlField);
+    window.getSelection().addRange(range);
+  document.execCommand('copy');
+
+}
+
+
+</script>
+ 
+{% endblock %}
+{% block card_title %} SIM Information {% endblock %}
+{% block new_body %}
+ 
+<div id="dcuSearchForm">
+    <br>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-lg-10">
+                    Device SIM Information
+                </div>
+            </div>
+            <br>
+            <ul class="nav nav-tabs card-header-tabs" data-bs-tabs="tabs">
+                <li class="nav-item" onclick="SetReqType('S')">
+                    <a class="nav-link active" aria-current="true" data-bs-toggle="tab" href="#SingleDevice">Single</a>
+                </li>
+                <li class="nav-item" onclick="SetReqType('M')">
+                    <a class="nav-link" data-bs-toggle="tab" href="#MultiDevice">Multi</a>
+                </li>
+            </ul>
+        </div>
+
+        <form class="card-body tab-content" action="/hes/SIMInfo/Get" method="POST" enctype="multipart/form-data">
+            <div class="tab-pane active" id="SingleDevice">
+                <input type="text" name="reqType" id="reqType" value="S" hidden readonly>
+
+                <label for="searchmethod" class="form-label">Search by: </label>
+                <select class="form-select" name="searchmethod" id="searchmethod" style="width: 100%;">
+                    <option value="DeviceId" data-content="Enter Meter Serial Number" selected>Device ID</option>
+                    <option value="IMSI" data-content="Enter Premise" >IMSI</option>
+                    <option value="ICCID" data-content="Enter Subscription">ICCID</option>
+                </select>
+                <input class="form-control w3-input w3-border" type="text" name="SCriteria" id="SCriteria" placeholder="Enter device number Here" style="margin-top: 10px;" />
+                
+
+                <div  >
+                    <div style="align:center">
+                        <br>
+                        <table class="table table-striped table-sm">
+                            <thead>
+                              <tr>
+                                {% for table in tables %}
+                                <th scope="col">{{table}}</th>
+                                {% endfor %}     
+                                
+                              </tr>
+                            </thead>
+                            <tbody>
+
+                                {% for i, row in tables.iterrows() %}
+
+                                <tr style="text-align: center;">
+
+                                    <td>{{ row.DeviceId }}</td>
+
+                                    <td> {{ row.IMSI }}</span></td>
+
+                                    <td>{{ row.ICCID }}</td>
+                              </tr>
+                              {% endfor %}     
+
+                            
+                            </tbody>
+                          </table>
+                          <input id="copy_btn" type="button" value="copy" onclick="CopyTable()">
+                    </div>
+                </div>
+    <br>
+          
+            </div>
+
+            <div class="tab-pane" id="MultiDevice">
+                <div class="row">
+                    <div class="col-md-9">
+                        <label for="searchmethodM" class="form-label">Search by: </label>
+                        <select class="form-select" name="searchmethodM" id="searchmethodM" style="width: 100%;">
+                            <option value="DeviceId" data-content="Enter Meter Serial Number" selected>Device ID</option>
+                            <option value="IMSI" data-content="Enter Premise" >IMSI</option>
+                            <option value="ICCID" data-content="Enter Subscription">ICCID</option>
+                        </select>
+                        <br>
+                        <input type="file" name="ufile" class="form-control" placeholder="First name">
+                    </div>
+
+                    <!-- <div class="col-md-3">
+                            <button onclick="download('Communication Module_Replacement_Sample.csv' , 'MeterID,CMID')" type="button" class="btn btn-primary"><i class="bx bx-question-mark"></i>Sample</button>
+                    </div> -->
+                </div>
+                <br>
+            </div>
+       
+          
+            <a href='/'>
+                <button type="button" class="btn btn-primary" style="float: left;">Home</button>
+            </a>
+            <button type="Submit" class="btn btn-primary" style="float: right;">
+                <i class="fa fa-paper-plane"></i>Search
+              </button></a>
+        </form>
+    </div>
+
+    <br>
+</div>
+
+ 
+{% endblock %}
+
+
