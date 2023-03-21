@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <meta content="" name="description" />
+        <meta content="" name="keywords" />
+        <title>Smart Meter Application</title>
+        <link href="{{ url_for('static', filename='Image/Alfanar_logo.png') }}" rel="icon">
+
+        <!-- TODO Create seperate css for this page  -->
+        <!-- Favicons -->
+        <!-- <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet" /> -->
+        <link type="text/css" href="{{ url_for('static',filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
+        <link type="text/css" href="{{ url_for('static',filename='assets/vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet" />
+        <!-- Template Main CSS File -->
+        <link type="text/css" href="{{ url_for('static',filename='assets/css/style.css') }}" rel="stylesheet" />
+         <script src="{{ url_for('static',filename='assets/js/jquery-3.5.1.min.js') }}"></script>
+
+
+        <script>
+            function getCookie(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(";");
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == " ") {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            function setCookie(cname, cvalue, exdays) {
+                const d = new Date();
+                d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+                let expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+
+            function loaded() {
+                if (getCookie("LoggedIn") == "True") {
+                    document.getElementById("LogOutTabid").hidden = false;
+                    document.getElementById("LoginTabid").hidden = true;
+                    document.getElementById("SPName").innerHTML = getCookie("UserName").replace('"', "").replace('"', "");
+                    let req = new XMLHttpRequest();
+                    req.open("GET", "/getapps");
+                    //req.responseType = 'text';
+                    req.onload = function () {
+                        if (req.readyState == XMLHttpRequest.DONE) {
+                            D = '<li><a href="%%LINK%%">%%NAME%%</a></li><li>';
+                            //alert(req.responseText);
+                            obj = JSON.parse(req.responseText);
+                            //alert(obj.data);
+                            DropDownList = "";
+                            ProDropDownList = "";
+                            WFMSCardsFilling = ``;
+                            proelem = document.getElementById("ProListDropDown").innerHTML
+                            obj.data.forEach(function (data) {
+                                DropDownList = DropDownList + '<li><a href="' + data.AppRout + '">' + data.AppName + "</a></li>";
+                                WFMSCardsFilling =
+                                    WFMSCardsFilling +
+                                    `<div class="col-lg-3 col-md-3 "  data-aos-delay="100">
+                                        <div class="icon-box" style="height: 290px; margin-bottom: 20px" >
+                                            <div class="icon">
+                                                <i class='bx ` + data.AppIcon +`'></i>
+                                            </div>
+                                            <h4>
+                                                <a href="` + data.AppRout + `">` + data.AppName + `</a>
+                                            </h4>
+                                            <hr class="style14">
+                                            <div  style="overflow: auto; height:40px;">
+                                            <p >` + data.AppDisc + `</p>
+                                        </div>
+                                        </div>
+                                     </div>`;
+                                 if (data.AppName == "My Account"){
+                                ProDropDownList = `<li><a class="dropdown-item" href="/user/changepass">Change Password</a></li>
+                                               <li><hr class="dropdown-divider" /></li>`
+                            document.getElementById("ProListDropDown").innerHTML = ProDropDownList + proelem;
+                        } 
+                            });
+                            
+                            document.getElementById("AppListDropDown").innerHTML = DropDownList;
+                            document.getElementById("WFMSAppAllCards").innerHTML = WFMSCardsFilling;
+                            //document.getElementById("HESAppAllCards").innerHTML = "<p class='justify-content-center'>Coming Soon</p>";
+                            //  TODO: HESCsrdsFilling currently does not exist
+                        }
+                    };
+                    req.send();
+                } else {
+                    setCookie("LoggedIn", "False", 0.5);
+                }
+            }
+
+          //  $(document).on("click", ".appName", function () {
+          //      var clickedBtnID = $(this).attr("id"); // or var clickedBtnID = this.id
+          //      if (clickedBtnID == "hes") {
+          //          $("#hes").addClass("activeAppTab");
+          //          $("#hes").removeClass("applicationoption");
+          //          $("#mwfm").addClass("applicationoption");
+          //          $("#mwfm").removeClass("activeAppTab");
+          //          $("#WFMSAppAllCards").addClass("appDiv");
+          //          $("#HESAppAllCards").removeClass("appDiv");
+          //      }
+//
+          //      if (clickedBtnID == "mwfm") {
+          //          $("#mwfm").addClass("activeAppTab");
+          //          $("#mwfm").removeClass("applicationoption");
+          //          $("#hes").addClass("applicationoption");
+          //          $("#hes").removeClass("activeAppTab");
+          //          $("#WFMSAppAllCards").removeClass("appDiv");
+          //          $("#HESAppAllCards").addClass("appDiv");
+          //      }
+          //  });
+        </script>
+
+        <!-- Lines Animation -->
+        <style>
+ 
+hr.style14 { 
+  border: 0; 
+  height: 1px; 
+  background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0); 
+}
+
+
+            .appDiv {
+                display: none;
+            }
+            #hero::after {
+                background: rgba(0, 0, 0, 0.5);
+            }
+
+            .applicationoption {
+                padding: 30px;
+                background-color: #37517e;
+                 color: white;
+                align-content: center;
+            }
+
+            .activeAppTab {
+                padding: 30px;
+                background-color: #37517e;
+                 color: white;
+                align-content: center;
+            }
+     
+
+            .applicationoption:hover {
+              
+                box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 10px;
+             
+            }
+
+            .activeAppTab:before,
+            .activeAppTab:after,
+            .activeAppTab .activeAppTab-content:after {
+                content: "";
+                background: #fff;
+                width: 50%;
+                height: 4px;
+                /* transform: scaleX(0); */
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                z-index: 1;
+                /* transition: all 600ms ease; */
+            }
+
+            .activeAppTab {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .applicationoption {
+                position: relative;
+                overflow: hidden;
+            }
+            .applicationoption:before,
+            .applicationoption:after,
+            .applicationoption .applicationoption-content:before,
+            .applicationoption .applicationoption-content:after {
+                content: "";
+                background: #fff;
+                width: 50%;
+                height: 4px;
+                transform: scaleX(0);
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                z-index: 1;
+                transition: all 600ms ease;
+            }
+
+            .applicationoption:after {
+                top: auto;
+                bottom: 15px;
+                left: auto;
+                right: 15px;
+            }
+            .activeAppTab:after {
+                top: auto;
+                bottom: 15px;
+                left: auto;
+                right: 15px;
+            }
+
+            .applicationoption:hover:before,
+            .applicationoption:hover:after,
+            .applicationoption:hover .applicationoption-content:before,
+            .applicationoption:hover .applicationoption-content:after {
+                transform: scale(1);
+            }
+            .activeAppTab:hover:before,
+            .activeAppTab:hover:after,
+            .activeAppTab:hover .activeAppTab-content:before,
+            .activeAppTab:hover .activeAppTab-content:after {
+                transform: scale(1);
+            }
+
+
+            .scroll {
+                max-height: 500px;
+                overflow-y: auto;
+            }
+
+            ::-webkit-scrollbar {
+                width: 5px;
+                height: 5px;   
+              }
+              
+              
+              /* Track */
+              ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+              }
+              
+              /* Handle */
+              ::-webkit-scrollbar-thumb {
+                background: #888;
+              }
+              
+              /* Handle on hover */
+              ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+        </style>
+    </head>
+
+    <body onload="loaded();">
+        <!-- ======= Header ======= -->
+        <header id="header" class="fixed-top">
+            <div class="container d-flex align-items-center">
+                <h1 class="logo me-auto">
+                   <img src="{{ url_for('static', filename='Image/alfanar_white.png') }}" alt="Alfanar Logo" style="width: 15%; padding-bottom: 3%;">
+                   
+                    <a href="/" id="AlfanarName">AlFanar</a><sub><span></span></sub>
+                </h1>
+                 <nav id="navbar" class="navbar">
+                    <ul>
+
+                        
+
+
+                        <li class="dropdown">
+                            <a class="nav-link scrollto" href="#services"><span>Services</span> <i class="bx bx-chevron-down"></i></a>
+                            <ul id="AppListDropDown" class="scroll"></ul>
+                        </li>
+                        <li><a class="nav-link scrollto" href="/freesm">Site Locator</a></li>
+                        <li><a class="nav-link scrollto" href="/AlfMeter">Our Meters</a></li>
+                        <li class="dropdown">
+                            <a class="nav-link scrollto"><span>Downloads</span> <i class="bx bx-chevron-down"></i></a>
+                            <ul id="DownloadAppList" class="text-left" style="text-align:left">
+                                {{DownloadList|safe}}
+                            </ul>
+                        </li>
+                        <!-- <li><a class="nav-link scrollto" href="/Login" id="LoginTabid"> Login</a></li>
+                        <li><a class="nav-link scrollto" href="/logout" id="LogOutTabid" hidden>LogOut</a></li> -->
+                        {{USERSelfService}}
+                        <li class="nav-item me-7 me-lg-0 dropdown" style="width: 50%; height: 50%; ">
+                            <a
+                              class="nav-link toggle"
+                              href="#"
+                              id="navbarDropdown"
+                              role="button"
+                              data-mdb-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              <!-- <i id="ProIcon" class="bx bx-user" ><i class="bx bx-chevron-down"></i></i> -->
+                              <button type="button" class="btn btn-outline-light"><i id="ProIcon" class="bx bx-user" ></i> <span id="SPName" style="font-family:sans-serif, Arial, Helvetica ;"></span> <i class="bx bx-chevron-down"></i></button>
+
+                            </a>
+                            <ul id="ProListDropDown" class="dropdown-menu" aria-labelledby="navbarDropdown">
+                              <li>
+                                <a class="dropdown-item" href="/Login"id="LoginTabid">Login</a>
+                                <a class="nav-link scrollto" href="/logout" id="LogOutTabid" hidden>LogOut</a>
+                              </li>
+                            </ul>
+                    </ul>
+                    <i class="bx bx-menu mobile-nav-toggle"></i>
+                </nav>
+             </div>
+        </header>
+        <!-- End Header -->
+
+        <!-- ======= Hero Section ======= -->
+        <section id="hero" class="d-flex align-items-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
+                        <h1>Smart Meter Application Center</h1>
+                        
+
+                        <div class="d-flex justify-content-center justify-content-lg-start"></div>
+                    </div>
+                    <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">
+                        <img src="{{ url_for('static', filename='Image/hero-img.png') }}" class="img-fluid animated" alt="" />
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- End Hero -->
+
+        <main id="main">
+            <!-- Application Diffs -->
+       
+           
+            <!-- <section id="serviceType" style="margin: 0; padding:0%">
+                <div class="row">
+                    <div id="mwfm" class="col-lg-6 text-center appName activeAppTab">
+                        <span>Order Manegment</span>
+                    </div>
+                    <div id="hes" class="col-lg-6 text-center appName applicationoption">
+                        <span>HES Operations</span>
+                    </div>
+                </div>
+            </section> -->
+            
+
+         </main>
+
+        <!-- ======= Application Section ======= -->
+        <section id="services" class="services section-bg">
+            <div class="container" data-aos="fade-up">
+                <div class="section-title">
+                    <h2>Services</h2>
+                     <a href="----"></a>
+                </div>
+
+                <div class="row " id="WFMSAppAllCards">
+                    <div class="section-title">
+                        <a href="/Login" class="justify-content-center">
+                                <button type="button" class="btn btn-primary">Login</button>
+                            </a>
+                        </div>
+                </div>
+                <div class="row appDiv" id="HESAppAllCards">
+                    <div class="section-title">
+                        <a href="/Login" class="justify-content-center">
+                                <button type="button" class="btn btn-primary">Login</button>
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </section>
+ 
+        <!-- ======= About Us Section ======= -->
+        <section style="background-color: white;" id="about" class="about">
+            <div class="container" data-aos="fade-up">
+                <div class="section-title">
+                    <h2>About</h2>
+                </div>
+          
+                <div class="row content">
+<p>Our website provides information, tools and resources to help understand and manage all related to smart meters, reduce time reporting, and save energy. We offer customizable dashboards and reports that provide instant insight into your installations. Along with emailing and multi-system integration, We strive to make it easy for you to complete what you need.</p>                      
+            
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======= Footer ======= -->
+        <footer id="footer">
+            <div class="container    clearfix">
+                <div class="d-flex align-items-center justify-content-center">
+                     <img src="{{ url_for('static', filename='Image/SMP_Dark_1.png') }}" alt="SMP Logo" style="width:5%; margin:15px;">
+                   </div>
+            </div>
+        </footer>
+        <!-- End Footer -->
+
+        <div id="preloader"></div>
+        <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bx bx-up-arrow-alt"></i></a>
+
+        <!-- Vendor JS Files -->
+        <script src="{{ url_for('static',filename='assets/vendor/aos/aos.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/php-email-form/validate.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/vendor/waypoints/noframework.waypoints.js') }}"></script>
+
+        <!-- Template Main JS File -->
+        <script src="{{ url_for('static',filename='assets/js/main.js') }}"></script>
+    </body>
+</html>
