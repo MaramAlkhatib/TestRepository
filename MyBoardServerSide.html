@@ -1,0 +1,221 @@
+{% extends "ATS_Templates/TicketBase.html" %} {% block top_scripts %}
+<script>
+   $(document).ready(function () {
+      $('#data').DataTable({
+        search: {
+            return: true
+        },
+             ajax: '/api/data',
+        processing: true,
+   
+        serverSide: true,
+        columns: [
+                    {data: 'Id'},
+                    {data: 'Incident Number'},
+                    {data: 'Premise'},
+                    {data: 'Status'},
+                    {data: 'Severity'},
+                    {data: 'Office'},
+                    {data: 'Device Number'},
+                    {data: 'Last Action'},
+                    {data: 'LastActionDate'},
+                    {data: 'LastActionBy'},
+                    {data: 'CurrentComment'},
+                    {data: 'MustCloseBefore'},
+                    {data: 'ControllerGroup'}                         
+ 
+                     ],
+      });
+ 
+   
+
+    });
+
+</script>
+{% endblock %} {% block styles %}
+
+<style>
+    tr:hover > * {
+        box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.035);
+    }
+    td:hover {
+        cursor: pointer;
+    }
+    td {
+        font-size: 85%;
+    }
+
+
+
+    
+</style>
+
+{% endblock %}{% block nav_items %}
+<form action="">
+  <button class="btn btn-primary" type="submit" formaction="/ATS/BalaghForm" disabled>New Balagh</button>
+</form>
+{% endblock %} {% block body %}
+
+<div class="container-fluid">
+    <!-- Content Header -->
+   
+    <input type="text" hidden value="" />
+    <!-- Summary Row -->
+    <!-- <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Open Tickets
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">70</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Must Close Tickets
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">50</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Clevest Tickets
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">10</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Today Processed
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">20</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <!-- END Summary Row -->
+    <p></p>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">My Open Tickets</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="data" class="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Ticket No</th>
+                        <th>Incident Number</th>
+                        <th>Premise</th>
+                        <th>Status</th>
+                        <th>Severity</th>
+                        <th>Office</th>
+                        <th>Device Number</th>
+                        <th>Last Action</th>
+                        <th>Last Action Date</th>
+                        <th>Last Action By</th>
+                        <th>Comment</th>
+                        <th>MustCloseBefore</th>
+                        <th>Group</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+            <!-- </div> -->
+        </div>
+    </div>
+</div>
+ 
+
+<!--Balagh Form-->
+ 
+
+<!--END Balagh Form-->
+
+<!-- My Tickets -->
+
+{% endblock %}
+  
+ {% block SideBar %}
+<hr class="sidebar-divider" />
+<!-- Heading -->
+<div class="sidebar-heading">
+    My Regions:-
+</div>
+
+<!-- Nav Item - Charts -->
+<li class="nav-item">
+    <a class="nav-link" onclick='filterOffice("None","All")'>
+        <i class="fas fa-fw fa-table"></i>
+        <span>View All</span>
+    </a>
+</li>
+
+{% for region,offices in MyOffices.groupby('group') %}
+<!-- Nav Item - Pages Collapse Menu -->
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse{{region}}" aria-expanded="true" aria-controls="collapse{{region}}">
+        <i class="fas fa-fw fa-table"></i>
+        <span>{{region}}</span>
+    </a>
+    <div id="collapse{{region}}" class="collapse" aria-labelledby="heading{{region}}" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">{{region}} Offices:</h6>
+
+            <!-- <a class="collapse-item" href="/mytickets/{{region}}/ALL"><i class="fas fa-fw fa-table"></i><span> </span>All</a> -->
+            <a class="collapse-item" onclick='filterOffice({{offices["office"]| first}},"reg")'><i class="fas fa-fw fa-table"></i><span> </span>All</a>
+            {% for i,office in offices.iterrows() %}
+            <!-- <a class="collapse-item" href="/mytickets/{{region}}/{{office['office']}}" ><i class="fas fa-fw fa-table"></i><span> </span>{{office['office']}}</a> -->
+            <a class="collapse-item" onclick='filterOffice({{office["office"]}},"off")' ><i class="fas fa-fw fa-table"></i><span> </span>{{office['office']}}</a>
+
+            {% endfor %}
+        </div>
+    </div>
+</li>
+{% endfor %}
+
+<script type="text/javascript">
+     console.log("Page load time " + (Date.now() - start) + "  milliseconds")
+</script>{% endblock %}
