@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="lt-ie9"><![endif]-->
+<!--[if gt IE 8]><!--><html><!--<![endif]-->
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+        <meta name="viewport" content="width=device-width initial-scale=1" />
+
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script type="text/javascript" src="./src/TimeCircles.js"></script>
+        <link href="./src/TimeCircles.css" rel="stylesheet" />
+
+        <title>Under Construction Page</title>
+        <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/9/96/Birt-purple-logo.png" />
+        <meta name="theme-color" content="#0a131a" />
+    </head>
+    <style>
+        body {
+            font-family: "SF Pro Display", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            max-width: 670px;
+            width: 100%;
+            height: 300px;
+            margin: 10px auto;
+            font-size: 16px;
+            line-height: 1.5;
+            font-weight: 300;
+            color: white;
+            background: linear-gradient(20deg, rgba(1, 10, 72, 0.64), rgba(1, 10, 72, 0.64)), url({{ url_for('static',filename='Image/MeterPic3.jpg') }}) no-repeat ;
+            height: 100%;
+
+            /* Center and scale the image nicely */
+            background-position: center;
+
+            background-size: cover;
+        }
+
+        .remove-top-margin {
+            margin-top: 0;
+        }
+        .logo {
+            border-radius: 50%;
+            max-width: 150px;
+            max-height: 180px;
+            margin-top: 20%;
+        }
+
+        .logo-placeholder {
+            padding: 5px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 0 20px 20px 20px;
+            display: flex;
+         
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .counter {
+            width: 500px;
+        }
+
+        @media (min-width: 481px) and (max-width: 767px) {
+            .counter {
+                width: 450px;
+            }
+        }
+
+        /*
+  ##Device = Most of the Smartphones Mobiles (Portrait)
+  ##Screen = B/w 320px to 479px
+*/
+
+        @media (min-width: 320px) and (max-width: 480px) {
+            .counter {
+                width: 350px;
+            }
+        }
+    </style>
+    <body>
+        <div class="container">
+            <div class="logo-placeholder">
+                <img src="{{ url_for('static', filename='Image/SMP_Dark_1.png') }}" alt="logo" class="logo" />
+                <h1>Coming Soon</h1>
+                <h3>{{ApplicationName}}</h3>
+            </div>
+            <div class="content" style="text-align: center; ">
+                <h3 class="text-center">
+                    {{ApplicationName}} is currently under construction and all individuals affected will be informed when the application is up and running.
+                </h3>
+  <h4>Your Paitiance is Appreciated</h4>
+            </div>
+        </div>
+    </body>
+</html>
