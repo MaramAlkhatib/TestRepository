@@ -1,0 +1,1142 @@
+{% extends "ATS_Templates/TicketBase.html" %} {% block top_scripts %}
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            data: { requestedPremise: $("#PNum").val() },
+            type: "POST",
+            url: "/openwfmsorder",
+        }).done(function (data) {
+            if (data.result == "foundorder") {
+                $("#neworderbutton").prop("disabled", true);
+                $("#neworderbutton").attr("title", "There is an open order. order must be closed/completed before creating new orders");
+            }
+        });
+
+        $("select")
+            .change(function () {
+                $(this)
+                    .find("option:selected")
+                    .each(function () {
+                        var optionValue = $(this).attr("value");
+                        if (optionValue) {
+                            $(".box")
+                                .not("." + optionValue)
+                                .hide();
+                            $("." + optionValue).show();
+                        } else {
+                            $(".box").hide();
+                        }
+                    });
+            })
+            .change();
+
+        $("#bm_reason")
+            .change(function () {
+                $(this)
+                    .find("option:selected")
+                    .each(function () {
+                        var optionValue = $(this).attr("value");
+                        if (optionValue) {
+                            $("#sub_reason").val("");
+                            $("#sub_reason>option")
+                                .not("." + optionValue)
+                                .hide();
+                            var allOptions = $("#sub_reason option").clone();
+                            var val = $(this).val();
+                            $("#selectbox").html(allOptions.filter("." + val + ""));
+                        } else {
+                            $("#sub_reason>option").hide();
+                            $("#bm_reason").val("");
+                            $("#sub_reason").val("");
+                        }
+                    });
+            })
+            .change();
+
+        $("#orders_select").change(function () {
+            var val = $(this).val();
+            if (val != "") {
+                $("#orderForm").show();
+                $("#" + val).show();
+                $("#orderForm>div")
+                    .not("#" + val)
+                    .hide();
+
+                $("#orderForm input, #orderForm select , #orderForm textarea  ")
+                    .not("#" + val)
+                    .prop("required", false);
+                $("#orderForm ." + val + "feild").prop("required", true);
+                $("#CMNum").prop("required", false);
+
+                // $("#wfmscreationForm").prop('novalidate',true);
+                //$("#wfmscreationForm").addClass('needs-validation' );
+            } else {
+                $("#orderForm>div").hide();
+                $("#orderForm").hide();
+                $("#orderForm input, #orderForm select , #orderForm textarea")
+                    .not("#" + val)
+                    .prop("required", false);
+
+                //$("#wfmscreationForm").prop('novalidate',false);
+                //$("#wfmscreationForm").removeAttr('needs-validation');
+            }
+        });
+
+        $(".singleAlarm").click(function () {
+            var tsa = $(this).val();
+            if ((tsa == 4) | (tsa == 5)) {
+                $("#CMNum").show();
+                $("#CMNumlbl").show();
+                $("#CMNum").prop("required", true);
+            } else {
+                $("#CMNum").hide();
+                $("#CMNumlbl").hide();
+                $("#CMNum").prop("required", false);
+            }
+        });
+    });
+
+    function formvalue(actionType) {
+        document.getElementById("actionType").value = actionType;
+    }
+
+    function setFilter(officeNo, indecator) {
+        localStorage.setItem("filteredOffice", officeNo);
+        localStorage.setItem("filterkey", indecator);
+        window.location.href = "/ATS";
+    }
+
+    function linkForm() {
+        setTimeout(() => {
+            if ($("#viewanchor").is(":visible")) {
+                $("html, body").animate(
+                    {
+                        scrollTop: $("#viewanchor").offset().top - $("#wfms_OrderCreationForm").height(),
+                    },
+                    100
+                );
+                window.scrollTo(document.getElementById("viewanchor"));
+            }
+        }, 200);
+    }
+
+    function ckChange() {
+        var checkedValue = null;
+        var Meter = document.getElementById("Meter");
+        var DCU = document.getElementById("DCU");
+        var ECB = document.getElementById("ECB");
+        var CM = document.getElementById("CM");
+
+        CM.readonly = false;
+        ECB.readonly = false;
+        Meter.readonly = false;
+        DCU.readonly = false;
+
+        if (Meter.checked == true && (DCU.checked == true || ECB.checked == true || CM.checked == true)) {
+            var inputElements = document.querySelectorAll('input[type="checkbox"]:not(:checked)');
+            for (var i = 0; i < inputElements.length; ++i) {
+                inputElements[i].readonly = true;
+            }
+        }
+
+        if (DCU.checked == true || ECB.checked == true || CM.checked == true) {
+            var inputElements = document.querySelectorAll('input[type="checkbox"]:not(:checked)');
+            for (var i = 0; i < inputElements.length; ++i) {
+                if (inputElements[i].id != "Meter") {
+                    inputElements[i].readonly = true;
+                }
+            }
+        }
+    }
+
+    function validateForm() {
+        var inputElements = document.querySelectorAll('#BMForm input[type="checkbox"]:checked');
+        if ($("#BMForm").is(":visible") & (inputElements.length == 0)) {
+            alert("Device must be selected first");
+        } else {
+            $("#actionCommentModalWFMS").modal("show");
+        }
+    }
+</script>
+{% endblock %} {% block styles %}
+<style>
+    .dots_border_hes {
+        border: 3px solid #0030ce !important;
+    }
+    .dots_border_maf {
+        border: 3px solid #0030ce !important;
+    }
+    .dots_border_mdt {
+        border: 3px solid #0030ce !important;
+    }
+
+    .disabledbtn {
+        pointer-events: all !important;
+    }
+
+    #pageMessages {
+        position: fixed;
+        bottom: 15px;
+        right: 15px;
+        width: 30%;
+        z-index: 999;
+    }
+
+    .alert {
+        position: relative;
+    }
+
+    .alert .close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 1em;
+    }
+
+    .alert .fa {
+        margin-right: 0.3em;
+    }
+
+    #SVForm,
+    #TSForm,
+    #SIMForm,
+    #BMForm,
+    #orderForm {
+        display: none;
+    }
+
+    .scroll {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .toolbutton {
+        position: relative;
+        left: -12px;
+        display: inline-block;
+        padding: 6px 11px;
+        background: rgba(0, 0, 0, 0.556);
+        border-radius: 3px 0 0 3px;
+    }
+    .toolbutton-labeled {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    hr.style14 {
+        border: 0;
+        height: 1px;
+        background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+        background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+        background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+        background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+    }
+
+    .vertical-center {
+        right: 5%;
+        position: absolute;
+        top: 50%;
+
+        transform: translateY(-50%);
+    }
+
+    .amber-textarea textarea.md-textarea:focus:not([readonly]) {
+        border-bottom: 1px solid #ffa000;
+        box-shadow: 0 1px 0 0 #ffa000;
+    }
+    .active-amber-textarea.md-form label.active {
+        color: #ffa000;
+    }
+    .active-amber-textarea.md-form textarea.md-textarea:focus:not([readonly]) + label {
+        color: #ffa000;
+    }
+
+    .subinfo {
+        font-size: 80%;
+    }
+
+    td,
+    tr {
+        vertical-align: middle !important;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .logdot {
+        padding: 0% !important;
+        border: none !important;
+    }
+
+    /* Regular breadcrumbs */
+
+    #breadcrumps ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 2em;
+        color: #333;
+        padding-left: 0;
+        font-size: small;
+        padding-top: 0;
+    }
+
+    #breadcrumps li {
+        display: inline-block;
+        position: relative;
+        padding-right: 2em;
+        margin: 0;
+    }
+    #breadcrumps li:after {
+        content: ">";
+        position: absolute;
+        display: inline-block;
+        right: 0;
+        width: 2em;
+        text-align: center;
+    }
+    #breadcrumps li:last-child {
+        font-weight: bold;
+    }
+    #breadcrumps li:last-child:after {
+        content: "";
+    }
+
+    #breadcrumps a {
+        text-decoration: none;
+        display: inline-block;
+        color: #333;
+        white-space: nowrap;
+    }
+    #breadcrumps a:hover {
+        text-decoration: underline;
+    }
+
+    /* Collapsed breadcrumbs */
+
+    #breadcrumps .collapsed li {
+        overflow: hidden;
+    }
+    #breadcrumps .collapsed li:after {
+        background: rgb(247, 248, 251);
+        background: linear-gradient(90deg, rgba(247, 248, 251, 0.4) 0%, rgb(247, 248, 251) 35%);
+        padding-left: 1em;
+    }
+
+    #breadcrumps .collapsed a {
+        max-width: 2em;
+        transition: max-width 300ms ease-in-out;
+    }
+    #breadcrumps .collapsed a:hover,
+    #breadcrumps .collapsed a:focus,
+    #breadcrumps .collapsed li:hover a {
+        max-width: 1000px;
+    }
+    #breadcrumps .collapsed li:hover:after {
+        padding-left: 0em;
+        background: transparent;
+    }
+</style>
+
+{% endblock %} {% block nav_items %} {% for k,v in ticket.iterrows() %} {% if toolbar == 'MAFTools' %} {% if v.StatusCode in ["10000","10900"] %}
+<button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Ticket Accepted")' style="margin-right: 1%;">Accept</button>
+<button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Ticket Rejected")' style="margin-right: 1%;">Reject</button>
+{% else %} {% endif %} {% if v.StatusCode in ["10100","10400"] %}
+<!-- <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Order Created")' style="margin-right: 1%;"disabled>New Order</button> -->
+<!-- <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Sent to HES")' style="margin-right: 1%;"disabled>HES Data Request</button> -->
+<!-- <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Re-sent to SEC")' style="margin-right: 1%;" disabled>Reassign to SEC</button> -->
+<!-- <div class="btn-group dropleft">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Pend
+    </button>
+    <div class="dropdown-menu"disabled>
+        <a class="dropdown-item" href="#" style="color: rgba(0, 0, 0, 0.556);" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Pended on Meterial")' disabled>Pending Meterial</a>
+        <a class="dropdown-item" href="#" style="color: rgba(0, 0, 0, 0.556);" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Pended on Weather")'disabled>Pending Weather</a>
+        <a class="dropdown-item" href="#" style="color: rgba(0, 0, 0, 0.556);" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Pended on SEC")'disabled>Pending on SEC</a>
+        <a class="dropdown-item" href="#" style="color: rgba(0, 0, 0, 0.556);" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Pended on Other")'disabled>Pending Others</a>
+    </div>
+</div> -->
+<button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Completed")' style="margin-left: 1%;">Complete</button>
+{% else %} {% endif %} {% if v.StatusCode not in ["10300","10800","10200","10700","10000","10900"] %}
+<!-- <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Cancelled")' style="margin-left: 1%;" disabled>Cancel</button> -->
+{% else %} {% endif %} {% if v.StatusCode in ["10520","10530","10510","10540"] %}
+<!-- <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Resolved")' style="margin-right: 1%;"disabled>Resolve</button> -->
+{% else %} {% endif %} {% if v.StatusCode in ["10800","10700"] %}
+<!-- <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#actionCommentModal" onclick='formvalue("Re-opened")' style="margin-right: 1%;"disabled>Reopen</button> -->
+{% else %} {% endif %} {% else %}
+<!-- HES Element Here -->
+{% if v.StatusCode in ["10500"] %}
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#actionCommentModal" onclick='formvalue("HES - Complete")' style="margin-right: 1%;"disabled>Complete</button> -->
+{% endif %} {% endif %} {% endfor %} {% endblock %} {% block body %} {% for k,v in ticket.iterrows() %}
+<div class="container-fluid">
+    <div id="pageMessages"></div>
+
+    <div id="breadcrumps">
+        <ul class="collapsed">
+            <li><a href="/">Home</a></li>
+            <!--
+            -->
+            <li><a href="/ATS">ATS MyTickets</a></li>
+            <!--
+            -->
+            <li>Ticket {{v.TicketNumber}}</li>
+        </ul>
+    </div>
+    <!-- Page Heading -->
+    <p><i class="bx bxs-coupon"> </i><span class="h3"> {{v.TicketNumber}} Ticket Detailes</span></p>
+    {{v.DeviceId}}
+    <br />
+    {{v.Premise}}
+    <!-- ----------------------------------- Ticket Summery ----------------------------------- -->
+
+    <!-- Ticket Info -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <h6 id="TicketNum">#{{v.TicketNumber}}</h6>
+                </div>
+                <div class="col" style="font-size: 80%;">
+                    <h6 class="vertical-center" style="float: right; font-size: small;"><span class="badge badge-{{StatusKeys[v.Status]}} badge-counter vertical-center " style="float: right;">{{v.Status}}</span></h6>
+                </div>
+            </div>
+            <hr class="style14" />
+
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div class="col"><span class="fw-bold">Classification: </span> <span class="text-muted subinfo" style="font-size: small;">{{v.Classification}}</span><br /></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col"><span class="fw-bold">Incident #: </span> <span class="text-muted subinfo" style="font-size: small;">{{v.Incident_Number}}</span><br /></div>
+                        <div class="col" style="font-size: 80%;"><span class="badge badge-primary badge-counter vertical-center" style="float: right;">{{v.ReopenCounter}}</span> <br /></div>
+                    </div>
+                    <span class="fw-bold">Pending: </span> <span class="text-muted subinfo" style="font-size: small;">{{ v.TeamsGroups}}</span><br />
+                    <span class="fw-bold">Creation Date: </span> <span class="text-muted subinfo" style="font-size: small;">{{ v.CreationDateTime}}</span><br />
+                    <span class="fw-bold">Source: </span> <span class="text-muted subinfo" style="font-size: small;">{{ v.Source}}</span><br />
+
+                    <div class="row">
+                        {% if v.StatusCode in ["10200","10300","10510","10530","10540","10700","10800"] %}
+                        <div class="col">
+                            <span class="fw-bold">Due by: </span> <span class="text-muted subinfo" style="font-size: small;"><s>{{v.MustCloseBefore}}</s></span><br />
+                        </div>
+                        <div class="col" style="font-size: 80%;">
+                            <span class="text-muted vertical-center" style="float: right; font-size: 80%; margin: 0cm; padding: 0%;"> - hr <i class="bx bx-time-five" style="color: grey; margin: 0cm; padding: 0%; size: 5%;"></i> </span>
+                        </div>
+                        {% else %}
+                        <div class="col"><span class="fw-bold">Due by: </span> <span class="text-muted subinfo" style="font-size: small;">{{v.MustCloseBefore}}</span><br /></div>
+                        <div class="col" style="font-size: 80%;">
+                            <span class="text-muted vertical-center" style="float: right; font-size: 80%; margin: 0cm; padding: 0%;">
+                                {{v.Duein}}hr <i class="bx bx-time-five" style="color: red; margin: 0cm; padding: 0%; size: 5%;"></i>
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-sm-8">
+                    <span class="fw-bold"> Severity: </span> <span class="badge badge-danger badge-counter">{{v.Severity}}</span><br />
+                    <span class="fw-bold"> WorkSubType: </span> <span class="text-muted subinfo">{{v.WorkSubType}}</span><br />
+                    <span class="fw-bold"> Alarm 1: </span> <span class="text-muted subinfo">{{v.ColAlarms}}</span><br />
+                    <span class="fw-bold"> Alarm 2: </span> <span class="text-muted subinfo">{{v.ColAlarms2}}</span><br />
+                    <!-- <span class="fw-bold"> Comment: </span> <span class="text-muted">{{v.Comment}}</span><br /> -->
+
+                    <div class="row">
+                        <div class="col-sm-4"><span class="fw-bold">Last Action: </span> <span class="text-muted subinfo">{{v.LastAction}}</span><br /></div>
+                        <div class="col-sm-4" style="font-size: 90%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">{{v.LastActionDate}}</span><br /></div>
+                        <div class="col-sm-4" style="font-size: 90%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">{{v.LastActionBy}}</span><br /></div>
+                    </div>
+
+                    <span class="fw-bold">Comments: </span> <span class="text-muted subinfo">{{v.Comment}}</span><br />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Ticket Information</h6>
+    </div>
+    <div class="card-body">
+        <span class="fw-bold">Premise: </span><span class="text-muted subinfo">{{v.Premise}}</span><br />
+        <span class="fw-bold">Office: </span> <span class="text-muted subinfo">{{v.OfficeID}}</span><br />
+        <div class="row">
+            <div class="col"><span class="fw-bold">Device Number: </span> <span class="text-muted subinfo">{{v.DeviceId}}</span><br /></div>
+            <div class="col" style="font-size: 80%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">SMDD</span><br /></div>
+        </div>
+        <span class="fw-bold">Coordinates: </span> <span class="text-muted subinfo">{{v.Latitude}}, {{v.Longitude}}</span><br />
+
+        <hr class="style14" />
+        <span class="fw-bold"> WorkSubType: </span> <span class="text-muted subinfo">{{v.WorkSubType}}</span><br />
+        <span class="fw-bold"> Alarm 1: </span> <span class="text-muted subinfo">{{v.ColAlarms}}</span><br />
+        <span class="fw-bold"> Alarm 2: </span> <span class="text-muted subinfo">{{v.ColAlarms2}}</span><br />
+        
+        <div class="row">
+            <div class="col"><span class="fw-bold">Creation Date: </span> <span class="text-muted subinfo">{{v.CreationDateTime}}</span><br /></div>
+            <div class="col" style="font-size: 80%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">{{v.Source}}</span><br /></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7"><span class="fw-bold">Last Action: </span> <span class="text-muted subinfo">{{v.LastAction}}</span><br /></div>
+            <div class="col" style="font-size: 60%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">{{v.LastActionDate}}</span><br /></div>
+            <div class="col" style="font-size: 80%;"><span class="fw-bold"></span> <span class="text-muted vertical-center subinfo">{{v.LastActionBy}}</span><br /></div>
+        </div>
+
+        <span class="fw-bold">Comments: </span> <span class="text-muted subinfo">{{v.Comment}}</span><br />
+    </div>
+</div> -->
+
+    <div class="card shadow mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">SAP Details</h6>
+            </div>
+            <div class="card-body">
+                {% if MeterData is defined %}
+
+                <div id="SAPInfo" class="row">
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Premise</h6>
+                            <p id="sappremise" class="text-truncate">{{MeterData["Premise"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Subscription No</h6>
+                            <p id="sapsubscription" class="text-truncate">{{MeterData["SubScriptionNum"]}}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Account No</h6>
+                            <p id="sapaccount" class="text-truncate">{{MeterData["AccountNumber"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Meter Number</h6>
+                            <p id="sapmeter" class="text-truncate">{{MeterData["MeterSN"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Meter Type</h6>
+                            <p id="sapmeter" class="text-truncate">{{MeterData["MeterType"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Technology</h6>
+                            <p id="sapconntype" class="text-truncate">{{MeterData["Technology"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Breaker Capacity</h6>
+                            <p id="sapbreakercap" class="text-truncate">{{MeterData["BreakerCapacity"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Location</h6>
+                            <p id="saplocation" class="text-truncate">{{MeterData["Latitude"]}}, {{MeterData["Longitude"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Office</h6>
+                            <p id="sapoffice" class="text-truncate">{{MeterData["Office"]}}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Prev. Read T</h6>
+                            <p id="sapprevreading" class="text-truncate">{{MeterData["PreReading"]}}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <h6>Last Bill Key</h6>
+                            <p id="saplastbill" class="text-truncate">{{MeterData["LastBill"]}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %} variable is not defined {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ----------------------------------- Ticket System Actions ----------------------------------- -->
+
+    <div class="card shadow mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary d-flex justify-content-between align-items-center">
+                    Ticket Actions {% if v.StatusCode in ["10100","10400"] %} {% if toolbar == 'MAFTools' %}
+                    <button id="neworderbutton" class="btn btn-primary disabledbtn" onclick="linkForm(); " type="button" data-toggle="collapse" data-target="#wfms_OrderCreationForm" aria-expanded="false" aria-controls="collapseExample">
+                        New Order
+                    </button>
+                    {% endif %} {% endif %}
+                </h6>
+            </div>
+            <div class="card-body scroll">
+                <div id="menu">
+                    <div class="panel list-group">
+                        {% for key,val in wfmsdata.iterrows() %}
+                        <a href="#" class="list-group-item" data-toggle="collapse" data-target="#sm{{loop.index}}" data-parent="#menu">
+                            {% if val.Status == "Cancelled" %}
+                            <span class="badge badge-secondary badge-counter">{{val.Status}}</span>
+                            {% elif val.Status != "Completed" %}
+                            <span class="badge badge-warning badge-counter">{{val.Status}}</span>
+                            {% else %}
+                            <span class="badge badge-info badge-counter">{{val.Status}}</span>
+                            {% endif %}
+                            <span style="margin: 1%;"> {{val.HostOrderNumber}} </span>
+                            <span class="small" style="margin: 1%;"> {{val.FinalCompletionDatetime}} </span>
+                            <span class="label label-info text-muted small" style="float: right;"> {{val.OrderType}} </span>
+                        </a>
+                        <!-- TODO: Add marker where the meter == SAP meter -->
+                        <div id="sm{{loop.index}}" class="sublinks collapse">
+                            <div class="list-group-item">
+                                <div id="" class="row" style="padding-left: 5%;">
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">Premise</h6>
+                                            <p id="sappremise" class="text-muted small">{{val.Premise}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">Creation Date & Time</h6>
+                                            <p id="sappremise" class="text-muted small">{{val.CreationDatetime}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">Completion Date & Time</h6>
+                                            <p id="sappremise" class="text-muted small">{{val.FinalCompletionDatetime}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">
+                                                Expected Meter {% if val.FH_MeterNumber == v.DeviceId %}
+                                                <i class="bx bxs-circle" style="color: #006cb8;"></i>
+                                                {% endif %}
+                                            </h6>
+                                            <p id="sappremise" class="text-muted small">{{val.FH_MeterNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">
+                                                Site Meter {% if val.MEX_FoundMeterNumber == v.DeviceId %}
+                                                <i class="bx bxs-circle" style="color: #006cb8;"></i>
+                                                {% endif %}
+                                            </h6>
+                                            <p id="sappremise" class="text-muted small">{{val.MEX_FoundMeterNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div>
+                                            <h6 class="text-muted">
+                                                New Meter {% if val.MEX_NewMeterNumber == v.DeviceId %}
+                                                <i class="bx bxs-circle" style="color: #006cb8;"></i>
+                                                {% endif %}
+                                            </h6>
+                                            <p id="sappremise" class="text-muted small">{{val.MEX_NewMeterNumber}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div>
+                                            <h6 class="text-muted">Field Comment</h6>
+                                            <p id="sappremise" class="text-muted small">{{val.MEX_Comment}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if v.StatusCode in ["10100","10400"] %} {% if toolbar == 'MAFTools' %}
+    <form id="wfmscreationForm" action="/ATS/TicketInfo/{{v.TEntity}}/TicketOrderCreate" method="POST">
+        <div id="wfms_OrderCreationForm" class="main-card mb-3 card shadow animated--fade-in collapse">
+            <div class="card-header py-3">
+                <div class="form-row align-items-center h-100">
+                    <div class="col-md-8"><h6 class="m-0 font-weight-bold text-primary">Order Creation</h6></div>
+                    <div class="col-md-4 select">
+                        <select id="orders_select" class="form-select form-select-sm" name="formType" aria-label="Option Select ">
+                            <option value="" selected>Open this select menu</option>
+                            <option value="SVForm">Site Visit</option>
+                            <option value="BMForm">Smart-to-Smart Replacement</option>
+                            <option value="SIMForm">SIM Replacement</option>
+                            <option value="TSForm">Trouble Shooting</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div novalidate="" class="ng-untouched ng-pristine ng-valid">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-row">
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_pnum">Premise</label>
+                                        <input class="form-control" id="PNum" name="PNum" value='{{MeterData["Premise"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_subscription">Subscription</label>
+                                        <input class="form-control" id="create_subscription" name="SubNum" value='{{MeterData["SubScriptionNum"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_accountnumber">Account Number</label>
+                                        <input class="form-control" id="create_accountnumber" name="AccNum" value='{{MeterData["AccountNumber"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <div class="position-relative form-group">
+                                        <label for="create_MeterNumbers">Meter Number</label>
+                                        <input class="form-control" id="create_MeterNumbers" name="MNum" value='{{MeterData["MeterSN"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="position-relative form-group">
+                                        <label for="create_meterType">Type</label><input class="form-control" id="create_meterType" name="create_meterType" value='{{MeterData["MeterType"]}}' type="text" readonly />
+                                        <!-- <label for="create_meterType">Type</label><input class="form-control" id="create_meterType" name="create_meterType" value="WC160A / DGLD / NB-IoT" type="text" readonly /> -->
+                                    </div>
+                                </div>
+
+                                <!-- <div class="col-md-2">
+                                <div class="position-relative form-group"><label for="create_tarifType">Tarif</label><input class="form-control" id="create_tarifType" name="create_tarifType" value="1" type="text" readonly /></div>
+                            </div> -->
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <div class="position-relative form-group">
+                                        <label for="create_coordinates">Coordinates</label>
+                                        <input class="form-control" id="create_coordinates" name="create_coordinates" value='{{MeterData["Latitude"]}}, {{MeterData["Longitude"]}}' type="text" readonly />
+                                        <input class="form-control" id="Long" name="long" value='{{MeterData["Longitude"]}}' type="text" readonly hidden />
+                                        <input class="form-control" id="Latt" name="latt" value='{{MeterData["Latitude"]}}' type="text" readonly hidden />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="position-relative form-group"><label for="create_mru">MRU</label><input class="form-control" id="create_mru" name="create_mru" value='{{MeterData["MRU"]}}' type="text" readonly /></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="position-relative form-group"><label for="Office">Office</label><input class="form-control" id="create_office" name="Office" value='{{MeterData["Office"]}}' type="text" readonly /></div>
+                                </div>
+                            </div>
+                            <div id="viewanchor"></div>
+
+                            <div class="form-row">
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_prevReadDate">Previouse Reading Date</label><input class="form-control" id="create_prevReadDate" name="create_prevReadDate" value="2022/11/28" type="text" readonly />
+                                    </div>
+                                </div>
+                                <!-- <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="create_prevReading">Previous Reading</label><input class="form-control" id="create_prevReading" name="create_prevReading" value='{{MeterData["Prev. Read T"]}}' type="text" readonly />
+                                </div>
+                            </div> -->
+
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_billDate">Last Bill Date</label><input class="form-control" id="create_billDate" name="create_billDate" value='{{MeterData["LastBill"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="create_breakerCapacity">Breaker Capacity</label>
+                                        <input class="form-control" id="create_breakerCapacity" name="create_breakerCapacity" value='{{MeterData["BreakerCapacity"]}}' type="text" readonly />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- <div class="form-row">
+                            <div class="col-md-12">
+                                <div class="position-relative form-group">
+                                    <label for="create_breakerCapacity">Breaker Capacity</label><input class="form-control" id="create_breakerCapacity" name="create_breakerCapacity" value='{{MeterData["BreakerCapacity"]}}' type="text" readonly />
+                                </div>
+                            </div>
+                        </div> -->
+                        </div>
+
+                        <div id="orderForm" class="col-md-4 border-left">
+                            <div id="SVForm">
+                                <!-- <div class="position-relative form-group"><label for="create_hon">HostOrderNumber</label><input class="form-control" id="create_hon" name="create_hon" value="4000011122-20221212" type="text" readonly /></div> -->
+                                <label for="complainEn">Complaint English</label>
+                                <textarea class="form-control SVFormfeild" rows="3" id="complainEn" name="reasonEn"></textarea>
+                                <label for="ComplaintAR">Complaint (Other Language)</label>
+                                <textarea class="form-control" rows="3" id="create_complainِArb" name="reasonAr"></textarea>
+
+                                <h6>Visit Requested By</h6>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input SVFormfeild" type="radio" name="requester" id="inlineRadio1" value="ALF" />
+                                    <label class="form-check-label" for="inlineRadio1">Alfanar</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input SVFormfeild" type="radio" name="requester" id="inlineRadio2" value="SEC" />
+                                    <label class="form-check-label" for="inlineRadio2">SEC</label>
+                                </div>
+                            </div>
+
+                            <div id="BMForm">
+                                <label for="bm_reason">Select Reason</label>
+                                <select id="bm_reason" name="reasons" class="form-select BMFormfeild" aria-label="Option Select ">
+                                    <option value="" selected>Select Category</option>
+                                    {%for k in subreason.keys()%}
+                                    <option name="{{k}}" id="{{k}}" value="{{k}}">{{k}}</option>
+                                    {% endfor %}
+                                </select>
+                                <br />
+
+                                <label for="sub_reason">Select Sub-Reason</label>
+                                <select id="sub_reason" name="subreason" class="form-select BMFormfeild" aria-label="Option Select ">
+                                    <option value="" selected>Select reasons</option>
+                                    {%for k in subreason.keys()%} {%for sk in subreason[k]%}
+                                    <div id="selectbox">
+                                        <option id="{{k}}{{sk[0]}}" class="{{k}} {{sk[0]}} " name="subreason" value="{{sk[0]}}">{{sk[0]}}</option>
+                                    </div>
+                                    {% endfor %} {% endfor %}
+                                </select>
+                                <br />
+                                <h6>Device:</h6>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="Meter" id="Meter" value="Y" onClick="ckChange()" />
+                                    <label class="form-check-label" for="inlineCheckbox1"> Meter/TMU</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="ECB" id="ECB" value="Y" onClick="ckChange()" />
+                                    <label class="form-check-label" for="inlineCheckbox2"> ECB</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="CM" id="CM" value="Y" onClick="ckChange()" />
+                                    <label class="form-check-label" for="inlineCheckbox3"> CM</label>
+                                </div>
+                                <div class="form-check form-check-inline" hidden>
+                                    <input class="form-check-input" type="checkbox" name="DCU" id="DCU" value="Y" onClick="ckChange()" />
+                                    <label class="form-check-label" for="inlineCheckbox3"> DCU</label>
+                                </div>
+
+                                <br />
+                            </div>
+
+                            <div id="SIMForm">
+                                <br />
+                            </div>
+
+                            <div id="TSForm">
+                                <span class="small">Kindly Confirm Choosing the Correct the ticket type before submitting</span>
+                                <hr />
+                                <p>Select Trouble Shooting Alarm:</p>
+                                <div style="padding-left: 2%;">
+                                    {% for k,v in alarms.items() %} {% if alarms["id"][loop.index0] == 6 %} {% else %}
+                                    <div class="form-check">
+                                        <input class="form-check-input singleAlarm TSFormfeild" type="radio" name="singleAlarm" id="flexRadioDefault{{loop.index0}}" value='{{alarms["id"][loop.index0]}}' />
+                                        <label class="form-check-label" for="flexRadioDefault{{loop.index0}}"> {{alarms["Key"][loop.index0]}} <span class="small">| {{alarms["Disc"][loop.index0]}}</span> </label>
+                                    </div>
+                                    {% endif %} {% endfor %}
+                                    <br />
+                                    <label id="CMNumlbl" for="CMNum" style="display: none;">Communicatio Module No</label>
+                                    <input class="form-control TSFormfeild" id="CMNum" name="CMNum " value="" type="text" style="display: none;" />
+                                    <br />
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button id="CreateOrderSubmit" class="btn btn-primary" type="button" style="background: #006cb8; bottom: 0; right: 0;" onclick="validateForm(); ">Create</button>
+                            </div>
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="actionCommentModalWFMS" tabindex="-1" aria-labelledby="actionCommentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="actionCommentModalLabel">Comment 2</h5>
+                        <button type="button" class="close" data-bd-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="md-form mb-4 pink-textarea active-pink-textarea">
+                            <label for="form18">Write action cause or conclusion: </label>
+                            <textarea id="actionComment" name="actionComment" class="md-textarea form-control" rows="3" required></textarea>
+                            <input id="actionType" name="actionType" type="text" value="" hidden />
+                            <input id="Premise" name="Premise" type="text" value="{{v.Premise}}" hidden />
+                            <input id="ReopenCounter" name="ReopenCounter" type="text" value="{{v.ReopenCounter}}" hidden />
+                            <input id="TicketID" name="TicketID" type="text" value="{{v.TEntity}}" hidden />
+                            <input id="TicketNumber" name="TicketNumber" type="text" value="{{v.TicketNumber}}" hidden />
+                            <input id="StatusCode" name="StatusCode" type="text" value="{{v.StatusCode}}" hidden />
+                            {{v.TEntity}}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% endif %} {% endif %}
+
+    <!-- ----------------------------------- Ticket Timeline ----------------------------------- -->
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Last Actions</h6>
+        </div>
+        <div class="card-body">
+            <div>
+                <div class="table-responsive" data-simplebar="init" style="max-height: 370px;">
+                    <table id="datatable" class="table mb-0">
+                        <tbody>
+                            {% macro random_string(len) -%}{% for i in range(0,len) -%}{{ [0,1,2,3,4,5,6,7,8,9,"a","b","c","d","e","f"]|random }}{% endfor %}{%- endmacro -%}
+                            {% macro random_guid() -%} {{  "#" + random_string(6) }}{%- endmacro -%}
+                            
+ 
+                            {% if logdata|length > 0 %} {% for i, row in logdata.iterrows() %} 
+                            {% if row["ControllerGroup"] == 1 %} {% set groupcol = "#DBA11C" %} 
+                            {% elif row["ControllerGroup"] == 2 %} {% set groupcol = "#31C192" %} 
+                            {% elif row["ControllerGroup"] == 3 %} {% set groupcol = "#00B0FF" %} 
+                            {% else %} {% set groupcol = random_guid() %} {% endif %}
+
+                            <tr>
+                                <td style="border-bottom: none; " class="logdot">
+                                    <div class="text-center flex-column d-none d-sm-flex">
+                                        {% if loop.first %}
+                                        <h6 class="m-2">
+                                            <span class="badge badge-pill bg-light" style="border: 3px solid {{groupcol}}">&nbsp;</span>
+                                        </h6>
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                        {% elif loop.last %}
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                        <h6 class="m-2">
+                                            <span class="badge badge-pill bg-light" style="border: 3px solid {{groupcol}}">&nbsp;</span>
+                                        </h6>
+                                        <div class="row h-50">
+                                            <div class="col">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                        {% else %}
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                        <h6 class="m-2">
+                                            <span class="badge badge-pill bg-light dots_border" style="border: 3px solid {{groupcol}}">&nbsp;</span>
+                                        </h6>
+                                        
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {% endif %}
+
+
+                                <!-- TODO: color is jinjas defult, not every team is a color  -->
+                                {% if (row["DateMinDiff"] / 60) > 24 %}
+                                {% set diff =  ((row["DateMinDiff"]  ) / 1440)|round|int|string + "d"   %}
+                                {% elif row["DateMinDiff"] >  60 %}
+                                {% set diff = ( row["DateMinDiff"] / 60 )|round|int|string + "h"  %}
+                                {% elif row["DateMinDiff"] <  1 %}
+                                {% set diff = ( row["DateMinDiff"] * 60 )|round|int|string + "s"  %}
+                                {% else %}
+                                {% set diff = (row["DateMinDiff"])|round|int|string + "m"  %}
+                                {% endif %}
+
+                               
+                            
+                                <td style="border-bottom: none; padding-bottom: 0%; padding-bottom:  0px;">{{row["LastAction"]}}</td>
+                                <td style="border-bottom: none; padding-bottom: 0%;padding-bottom:  0px;"><span class="badge badge-primary badge-counter">{{row["Status"]}}</span></td>
+                                <td style="border-bottom: none; padding-bottom: 0%; padding-bottom:  0px;">{{row["TS"]}}</td>
+                                <td style="border-bottom: none; padding-bottom: 0%; padding-bottom:  0px;">{{row["LastActionBy"]}}</td>
+                            </tr>
+                            <tr class="small " style="text-align: left;"> 
+                                <td style="border-top: none; padding-top: 0%;" class="logdot">
+                                    <div class="text-center flex-column d-none d-sm-flex">
+                                       
+                                        
+                                        {% if loop.last %}
+                                        {% else %}
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                         <span> {{  diff }} </span>
+                                        <div class="row h-50">
+                                            <div class="col border-right">&nbsp;</div>
+                                            <div class="col">&nbsp;</div>
+                                        </div>
+                                {% endif %}
+
+                                    </div>
+                                </td>
+                                <td colspan="12" style="border-top: none; padding-top: 0%; margin-top:  0%;  text-align: left;"><b>Comment:</b> kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk</td>
+                            </tr>
+
+                            {% endfor %} {% else %} {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- END Ticket Info -->
+
+    <!-- ----------------------------------- Modals ----------------------------------- -->
+
+    <!-- Comment Modal -->
+    <form id="" action="/ATS/TicketInfo/update" method="post">
+        <div class="modal fade" id="actionCommentModal" tabindex="-1" aria-labelledby="actionCommentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="actionCommentModalLabel">Comment</h5>
+                        <button type="button" class="close" data-bd-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="md-form mb-4 pink-textarea active-pink-textarea">
+                            <label for="form18">Write action cause or conclusion: </label>
+                            <textarea id="actionComment" name="actionComment" class="md-textarea form-control" rows="3" required></textarea>
+                            <input id="actionType" name="actionType" type="text" value="" hidden />
+                            <input id="Premise" name="Premise" type="text" value="{{v.Premise}}" hidden />
+                            <input id="ReopenCounter" name="ReopenCounter" type="text" value="{{v.ReopenCounter}}" hidden />
+                            <input id="TicketID" name="TicketID" type="text" value="{{v.TEntity}}" hidden />
+                            <input id="TicketNumber" name="TicketNumber" type="text" value="{{v.TicketNumber}}" hidden />
+                            <input id="StatusCode" name="StatusCode" type="text" value="{{v.StatusCode}}" hidden />
+                            {{v.TEntity}}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- ----------------------------------- Side bar ----------------------------------- -->
+    {% endfor %} {% endblock %} {% block SideBar %}
+    <hr class="sidebar-divider" />
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        My Regions:-
+    </div>
+
+    <!-- Nav Item - Charts -->
+    <li class="nav-item">
+        <a class="nav-link" onclick='localStorage.setItem("filteredOffice",["None","All"]); window.location.href="/ATS";'>
+            <i class="fas fa-fw fa-table"></i>
+            <span>View All</span>
+        </a>
+    </li>
+{% set office_counter = 0 %}
+    {% for region,offices in MyOffices.groupby('group') %}
+    
+
+    <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse{{region|replace(' ', '')}}" aria-expanded="true" aria-controls="collapse{{region|replace(' ', '')}}">
+            <i class="fas fa-fw fa-table"></i>
+            <span>{{region}} <span style="font-size:10px; float: right;" class="small badge rounded-pill badge-notification bg-danger">{{offices|length}}</span></span>
+        </a>
+        <div id="collapse{{region|replace(' ', '')}}" class="collapse" aria-labelledby="heading{{region|replace(' ', '')}}" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">{{region}} Offices:</h6>
+
+                <a class="collapse-item" onclick='setFilter({{region}}, "reg");'><i class="fas fa-fw fa-table"></i><span> </span>All</a>
+                {% for i,office in offices.iterrows() %}
+                <a class="collapse-item" onclick='setFilter({{office["office"]}}, "off");'><i class="fas fa-fw fa-table"></i><span> </span>{{office['office']}}</a>
+
+                {% endfor %}
+            </div>
+        </div>
+    </li>
+    {% endfor %} {% endblock %}
+
+    <!-- SMP Latest -->
+</div>
+
+
+
+
+
+
+
+
+<!-- 
+
+logdata = """
+        SELECT
+              Ticketid
+            , Tkts.EntityId
+            , ControllerGroup
+            , LastActionDate
+            , LastActionTypeId
+            , MustCloseBefore
+            , TS
+            , [LastActionBy] as LastActionById
+            , ST.Name as Status
+            , ST.code as StatusCode
+            , SO.Name as Source
+            , AT.Action as 'LastAction'
+            , TG.name AS TeamsGroups
+            , Concat(CrUA.FirstName, ' ', CrUA.LastName) as LastActionBy
+            , iif([OrderStatusId] in (3,4,12,13),CloseComment,CurrentComment) as Comment
+            , DATEDIFF(minute,  LAG(TS)  OVER (ORDER BY TS ) ,TS ) AS DateMinDiff
+
+        FROM
+            [Ticketing].[dbo].[TicketsLog] as Tkts
+            left join [Ticketing].[dbo].[Statuses] as ST on Tkts.OrderStatusId = ST.id 
+            left join [Ticketing].[dbo].[ActionTypes] as AT on Tkts.LastActionTypeId = AT.id 
+            left join [Ticketing].[dbo].[TeamsGroups] as TG on Tkts.ControllerGroup = TG.id 
+            left join [Ticketing].[dbo].[Sources] as SO on Tkts.SourceID = SO.id 
+            left join [HES].[dbo].[SAI_UserAccount] as CrUA on CrUA.id = Tkts.LastActionBy
+
+        WHERE
+             Tkts.EntityId = '_ENTITYNUM_'
+        ORDER BY TS DESC
+    """  -->
